@@ -1,0 +1,33 @@
+_________________________________________
+
+DETECTION MASKRCNN
+
+-- Dataset custom -------------------
+Numero tatale frame: 920
+Numero tatale frame con posizione individuata (score > 0.95): 404
+Percentuale frame palla individuata (score > 0.95): 43%
+
+-- Dataset coco -------------------
+Numero tatale frame: 920
+Numero tatale frame con posizione individuata: 0
+
+_________________________________________
+
+DETECTION MASKRCNN + TRACKING CSRT
+
+Numero totale frame: 920
+Numero totale frame tracciati: 798
+Contributo detection: 402
+Contributo tracking: 396
+Percentuale palla individuata: > 86%
+
+_________________________________________
+
+DETECTION MASKRCNN + TRACKING CSRT + INTERPOLAZIONE
+
+Numero totale frame: 920
+Numero totale frame tracciati: 820
+Contributo detection: 402
+Contributo tracking: 396
+Contributo interpolazione: 21
+Percentuale palla individuata: > 89%
