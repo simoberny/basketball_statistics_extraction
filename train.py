@@ -145,6 +145,19 @@ def train(model, dataset):
     print(f'Training took {minutes} minutes')
 
 if __name__ == '__main__':
+    import argparse
+
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description='Train Mask R-CNN to detect balloons.')
+    parser.add_argument('--weight', required=True,
+                        metavar="name of the weight",
+                        help='Name of the weights')
+    parser.add_argument('--dataset', required=True,
+                        metavar="path to dataset url",
+                        help='Dataset should contain train and val')
+    args = parser.parse_args()
+
     #Load configuration
     config = CustomConfig()
     config.display()
@@ -152,8 +165,10 @@ if __name__ == '__main__':
     model = modellib.MaskRCNN(mode="training", config=config,
                                   model_dir=MODEL_DIR)
 
+    dataset = args.dataset
+
     #Weight to start with
-    init_with = "coco"  # imagenet, coco, or last
+    init_with = args.weight  # imagenet, coco, or last
 
     if init_with == "imagenet":
         model.load_weights(model.get_imagenet_weights(), by_name=True)
@@ -169,4 +184,4 @@ if __name__ == '__main__':
         model.load_weights(model.find_last(), by_name=True)
 
     #Start training
-    train(model, "dataset/")
+    train(model, dataset)
