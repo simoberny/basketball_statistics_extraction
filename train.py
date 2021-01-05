@@ -45,7 +45,7 @@ class CustomConfig(Config):
     NUM_CLASSES = 1 + 1  # Background + person + ball
 
     # Number of training steps per epoch
-    STEPS_PER_EPOCH = 200
+    STEPS_PER_EPOCH = 250
     DETECTION_MIN_CONFIDENCE = 0.8
 
 class CustomDataset(utils.Dataset):
