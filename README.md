@@ -1,9 +1,15 @@
 # Basketball game tracking
 Extraction of high level statistics by tracking Basketball game using MaskRCNN, SORT, CSRT and interpolation
-This files should be inserted in the Maskrcnn samples folder 
 
 ### Players Tracking
-![gif tracking](https://github.com/simoberny/basket_tracking/blob/master/data/sort.gif)
+![gif tracking](https://github.com/simoberny/basket_tracking/blob/master/data/ball_track.gif)
+
+
+## Instructions
+1. This files need to be placed in a "project folder" inside samples folder of MaskRCNN.
+   -  Something like: *MASKRCNN FOLDER/samples/{custom}/files*
+2. Follow instructions on Maskrcnn repository to install dependencies and maskrcnn itself
+3. Run the script as indicated below!
 
 ## Files explanation
 All the script read and save in MOT challenge format
