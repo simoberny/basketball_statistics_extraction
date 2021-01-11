@@ -6,6 +6,12 @@ This files should be inserted in the Maskrcnn samples folder
 ![gif tracking](https://github.com/simoberny/basket_tracking/blob/master/data/sort.gif)
 
 ## Files explanation
+All the script read and save in MOT challenge format
+
+```
+frame_id, bbox_id, x_pos, y_pos, width, height, score, other_param (default -1), other_param (default -1), other_param (default -1)
+```
+
 #### Training
 Dataset folder should contain train and val folder. Follow MaskRCNN rules. 
 ```
@@ -34,6 +40,12 @@ python tracking.py --video=/path/to/video --det=/path/to/detections.txt
 Try to fill all the frame without a detection, interpolating tracking and detection infos
 ```
 python interpolation.py --video=/path/to/video --det=/path/to/tracking.txt
+```
+
+#### Extract Statistics
+Extract some base statistic, ball possession and ball position in the two half of the pitch
+```
+python stats.py --video=/path/to/video --det_ball=/path/to/ball_tracking.txt --det_player=/path/to/det.txt
 ```
 
 #### Utility

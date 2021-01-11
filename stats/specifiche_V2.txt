@@ -1,0 +1,5 @@
+Detection e tracciamento palla vers. 2
+ - Rete resnnet50 invece che 101. Resnet101 creava overfitting in quanto troppo grande per rappresentare un solo elemento
+ - Allenamento su 300 sample
+ - Tracciamento applicato a bbox più grandi per migliorare la discretizzazzione di CSRT
+ - Rilascio anticipato bbox errate da parte del tracking

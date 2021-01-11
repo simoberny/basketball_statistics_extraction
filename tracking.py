@@ -8,7 +8,7 @@ import cv2
 import colorsys
 import skimage.io
 from time import sleep
-from google.colab.patches import cv2_imshow
+#from google.colab.patches import cv2_imshow
 from imutils.video import FPS
 from tqdm import tqdm
 import math
@@ -50,6 +50,10 @@ def opencv_tracking(video_path, detection_path):
         print ("Could not open video")
         sys.exit()
 
+    file_path = 'tracker_params.yaml'
+    fp = cv2.FileStorage(file_path, cv2.FILE_STORAGE_READ)  # Read file
+      # Do not use: tracker.read(fp.root())
+
     frame_id = 0
     ret = True
     success = False
@@ -61,6 +65,7 @@ def opencv_tracking(video_path, detection_path):
     fps = None
 
     prev_box = [0, 0]
+    frame_diff = 0
 
     with tqdm(total=length_input, file=sys.stdout) as pbar:
         while ret:
@@ -83,19 +88,29 @@ def opencv_tracking(video_path, detection_path):
                 det_frame+=1
 
             if initBB is None or frame_id % 1 == 0:
+                min_distance = 9999
+
                 for i, bbox in enumerate(boxes):
                     coor = np.array(bbox[:4], dtype=np.int32)
-                    initBB = (coor[0], coor[1], coor[2], coor[3])
+                    initBB = (coor[0]-6, coor[1]-6, coor[2]+12, coor[3]+12)
 
                     #Difference between new detections and last tracking by CSRT
                     eucl = math.sqrt((coor[0] - prev_box[0]) ** 2 + (coor[1] - prev_box[1]) ** 2)
 
-                    if (prev_box[0] == 0 and prev_box[1] == 0) or eucl < 700: 
-                        tracker = cv2.TrackerCSRT_create()
-                        tracker.init(frame, initBB)
-                    
-                        fps = FPS().start()
+                    if (prev_box[0] == 0 and prev_box[1] == 0) or (frame_diff > 3 or eucl < 50): 
+                        if eucl < min_distance: 
+                            min_distance = eucl
+                            
+                            tracker = cv2.TrackerCSRT_create()
+                            #tracker.read(fp.getFirstTopLevelNode())
+                            tracker.init(frame, initBB)
+                        
+                            fps = FPS().start()
 
+                            frame_diff = 0        
+                    else:
+                        frame_diff += 1
+                            
             if initBB is not None: 
                 (success, tracked_box) = tracker.update(frame)
                 #(success, tracked_boxes) = trackers.update(frame)

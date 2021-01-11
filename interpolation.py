@@ -8,7 +8,7 @@ import cv2
 import colorsys
 import skimage.io
 from time import sleep
-from google.colab.patches import cv2_imshow
+#from google.colab.patches import cv2_imshow
 from imutils.video import FPS
 from tqdm import tqdm
 import math
@@ -71,7 +71,7 @@ def interpolation(detection_path):
                     new_pos_x = before[0] + space_x * (k + 1)
                     new_pos_y = before[1] + space_y * (k + 1)
 
-                    gt_dict[before_index + (k + 1)].append({'coords': [new_pos_x, new_pos_y, before[2], before[3]],'conf':1})
+                    gt_dict[before_index + (k + 1)].append({'coords': [new_pos_x, new_pos_y, before[2], before[3]],'conf':1, 'ids':-1})
                     inter_frame+=1
 
             nt = 0

@@ -41,10 +41,11 @@ class BasketConfig(Config):
     NUM_CLASSES = 1 + 1  # Background + basketball
 
     # Number of training steps per epoch
-    STEPS_PER_EPOCH = 100
+    STEPS_PER_EPOCH = 150
 
     # Skip detections with < 90% confidence
     DETECTION_MIN_CONFIDENCE = 0.8
+    BACKBONE = 'resnet50'
 
 
 # define random colors
@@ -99,7 +100,7 @@ def display_instances(count, image, boxes, masks, ids, names, scores):
             image = cv2.rectangle(image, (x1, y1), (x2, y2), (0,255,0), 2)
             image = cv2.putText(image, caption, (x1, y1), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0,255,0), 2)
 
-        if score > 0.70 and area < 1750:
+        if score > 0.80 and area < 1750:
             if label == 'basketball' or label == 'sports ball':
                 det_ok += 1
 
@@ -122,6 +123,40 @@ def display_instances(count, image, boxes, masks, ids, names, scores):
     f.close()
 
     return image, int(det_ok > 0)
+
+#take the image and apply the mask, box, and Label
+def display_instances_image(image, boxes, masks, ids, names, scores):
+    n_instances = boxes.shape[0]
+    colors = random_colors(n_instances)
+
+    if not n_instances:
+        return image
+        #print('NO INSTANCES TO DISPLAY')
+    else:
+        assert boxes.shape[0] == masks.shape[-1] == ids.shape[0]
+        
+    for i, color in enumerate(colors):
+        if not np.any(boxes[i]):
+            continue
+
+        y1, x1, y2, x2 = boxes[i]
+        label = names[ids[i]]
+        score = scores[i] if scores is not None else None
+
+        width = x2 - x1
+        height = y2 - y1
+
+        area = width * height
+
+        if score > 0.65: 
+            label = names[ids[i]]
+            caption = '{} {:.2f}'.format(label, score) if score else label
+            mask = masks[:, :, i]
+            image = apply_mask(image, mask, (0,255,0))
+            image = cv2.rectangle(image, (x1, y1), (x2, y2), (0,255,0), 10)
+            image = cv2.putText(image, caption, (x1, y1-20), cv2.FONT_HERSHEY_COMPLEX, 3, (0,255,0), 2)
+
+    return image
 
 def color_splash(image, mask):
     """Apply color splash effect.
@@ -193,6 +228,16 @@ def detect_and_color_splash(model, image_path=None, video_path=None):
         vwriter.release()
     print("Saved to ", file_name)
 
+def image_segmentation(model, class_names, image_path):
+    image = skimage.io.imread(image_path)
+    r = model.detect([image], verbose=0)[0]
+
+    frame = display_instances_image(image, r["rois"], r["masks"], r["class_ids"], class_names, r["scores"])
+
+    file_name = "detection_{:%Y%m%dT%H%M%S}.png".format(datetime.datetime.now())
+    skimage.io.imsave(file_name, frame)
+
+    print("Saved to ", file_name)
 
 def video_segmentation(model, class_names, video_path):
     stat = open("stats/stat.txt", "a")
@@ -258,9 +303,6 @@ if __name__ == '__main__':
     parser.add_argument("command",
                         metavar="<command>",
                         help="'train' or 'splash'")
-    parser.add_argument('--dataset', required=False,
-                        metavar="/path/to/balloon/dataset/",
-                        help='Directory of the Balloon dataset')
     parser.add_argument('--weights', required=True,
                         metavar="/path/to/weights.h5",
                         help="Path to weights .h5 file or 'coco'")
@@ -276,15 +318,7 @@ if __name__ == '__main__':
                         help='Video to apply the color splash effect on')
     args = parser.parse_args()
 
-    # Validate arguments
-    if args.command == "train":
-        assert args.dataset, "Argument --dataset is required for training"
-    elif args.command == "splash":
-        assert args.image or args.video,\
-               "Provide --image or --video to apply color splash"
-
     print("Weights: ", args.weights)
-    print("Dataset: ", args.dataset)
     print("Logs: ", args.logs)
 
     class InferenceConfig(BasketConfig):
@@ -344,9 +378,14 @@ if __name__ == '__main__':
         class_names = ['BG', 'basketball']
         model.load_weights(weights_path, by_name=True)
 
+
+
     # Train or evaluate
     if args.command == "detect":
-        video_segmentation(model, class_names, video_path=args.video)
+        if args.video:
+            video_segmentation(model, class_names, video_path=args.video)
+        else: 
+            image_segmentation(model, class_names, args.image)
     elif args.command == "splash":
         detect_and_color_splash(model, image_path=args.image,
                                 video_path=args.video)
