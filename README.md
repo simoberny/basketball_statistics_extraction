@@ -1,7 +1,7 @@
 # Basketball game tracking
 Extraction of high level statistics by tracking Basketball game using MaskRCNN, SORT, CSRT and interpolation
 
-### Players Tracking
+### Ball Tracking
 ![gif tracking](https://github.com/simoberny/basket_tracking/blob/master/data/ball_track.gif)
 
 
