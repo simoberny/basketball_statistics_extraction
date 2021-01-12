@@ -26,16 +26,8 @@ sys.path.append(ROOT_DIR)  # To find local version of the library
 def interpolation(detection_path):
     stat = open("stats/stat.txt", "a")
 
-    #dic_base = open("dic_base.json", "w")
-    #dic_add = open("dic_add.json", "w")
-
-    #det_complete = open("det_complete.txt", "w")
-
     #Convert file detection to dictionary
     gt_dict = get_dict(detection_path)
-    jso = json.dumps(gt_dict)
-
-    #dic_base.write(jso)
 
     inter_frame = 0
     i = 0
@@ -84,8 +76,7 @@ def interpolation(detection_path):
     stat.write("\n Contributo interpolazione: {}".format(inter_frame))
     stat.close()
 
-    #dic_base.close()
-    #dic_add.close()
+    save_mot(dict=gt_dict, txt="det_complete.txt")
 
     return gt_dict
     

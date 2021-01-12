@@ -12,6 +12,7 @@ from time import sleep
 from imutils.video import FPS
 from tqdm import tqdm
 import math
+import time
 
 #My own library with utils functions
 from utility import *
@@ -25,9 +26,11 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 sys.path.append(ROOT_DIR)  # To find local version of the library
 
 #Tacking using OpenCV implementation of CSRT 
-def opencv_tracking(video_path, detection_path):
+def opencv_tracking(video_path, detection_path, resize=2, txt_path="det/det_track_maskrcnn.txt"):
+    start = time.time()
+
     #BBOX file path
-    f = open("det/det_track_maskrcnn.txt", "w")
+    f = open(txt_path, "w")
 
     #Open stat file
     stat = open("stats/stat.txt", "a")
@@ -41,6 +44,8 @@ def opencv_tracking(video_path, detection_path):
     # Input video
     video = cv2.VideoCapture(video_path)
     length_input = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    print("Totale frame: {}".format(length_input))
 
     # Output video
     fourcc = cv2.VideoWriter_fourcc(*'MJPG')
@@ -67,6 +72,8 @@ def opencv_tracking(video_path, detection_path):
     prev_box = [0, 0]
     frame_diff = 0
 
+    bbox_offset = 8
+
     with tqdm(total=length_input, file=sys.stdout) as pbar:
         while ret:
             ret, frame = video.read()
@@ -92,7 +99,9 @@ def opencv_tracking(video_path, detection_path):
 
                 for i, bbox in enumerate(boxes):
                     coor = np.array(bbox[:4], dtype=np.int32)
-                    initBB = (coor[0]-6, coor[1]-6, coor[2]+12, coor[3]+12)
+
+                    # bbox initialized with an offset to better discriminate using dome background information
+                    initBB = (coor[0] - bbox_offset, coor[1] - bbox_offset, coor[2] + 2*bbox_offset, coor[3] + 2*bbox_offset)
 
                     #Difference between new detections and last tracking by CSRT
                     eucl = math.sqrt((coor[0] - prev_box[0]) ** 2 + (coor[1] - prev_box[1]) ** 2)
@@ -147,7 +156,7 @@ def opencv_tracking(video_path, detection_path):
                     for (i, (k, v)) in enumerate(info):
                         text = "{}: {}".format(k, v)
                         cv2.putText(frame, text, (16, H - ((i * 25) + 20)),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
                 else: 
                     initBB = None
 
@@ -159,7 +168,7 @@ def opencv_tracking(video_path, detection_path):
             pbar.update(1)
             sleep(0.1)
 
-    stat.write("Tracking\n")   
+    stat.write("\n---- Tracking ----\n")   
     stat.write("Numero tatale frame: {}\n".format(frame_id))
     stat.write("Numero tatale frame con posizione individuata: {}\n".format(det_frame))
     stat.write("Numero tatale frame tracked: {}\n".format(track_frame))
@@ -168,6 +177,11 @@ def opencv_tracking(video_path, detection_path):
 
     out.release()
     stat.close()
+
+    end = time.time()
+
+    print("Detections time: ", end-start)
+    print("FPS: {}".format(length_input/(end-start)))
 
 if __name__ == '__main__':
     import argparse

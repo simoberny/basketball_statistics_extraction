@@ -1,0 +1,15 @@
+
+---- Tracking ----
+Numero tatale frame: 331
+Numero tatale frame con posizione individuata: 263
+Numero tatale frame tracked: 313
+
+---- Tracking ----
+Numero tatale frame: 331
+Numero tatale frame con posizione individuata: 263
+Numero tatale frame tracked: 313
+
+---- Tracking ----
+Numero tatale frame: 331
+Numero tatale frame con posizione individuata: 263
+Numero tatale frame tracked: 313

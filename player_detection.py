@@ -44,25 +44,27 @@ def random_colors(N):
     colors = [tuple(255 * np.random.rand(3)) for _ in range(N)]
     return colors
 
+# create binary mask
 def get_mask(filename):
 	mask = cv2.imread(filename,0)
 	mask = mask / 255.0
 	return mask
  
-#apply mask to image
+# apply mask to image
 def apply_mask(image, mask, color, alpha=0.7):
     for n, c in enumerate(color):
         image[:, :, n] = np.where(mask == 1, image[:, :, n] * (1-alpha) + alpha * c, image[:, :, n])
     
     return image
 
-#apply mask to image
+# apply green screen on out of the mask
 def cut_by_mask(image, mask, color=(0,255,0)):
     for n, c in enumerate(color):
         image[:, :, n] = np.where(mask == 1, image[:, :, n], c)
     
     return image
 
+# return dominant color from image using Kmeans
 def get_dominant(img):
     global arbitro
     data = np.reshape(img, (-1,3))
@@ -175,7 +177,7 @@ def getTeam(image, color):
     return ret
 
 #Take the image and apply the mask, box, and Label
-def display_instances(count, image, boxes, masks, ids, names, scores):
+def display_instances(count, image, boxes, masks, ids, names, scores, resize):
     f = open("det/det_player_maskrcnn.txt", "a")
 
     n_instances = boxes.shape[0]
@@ -213,9 +215,6 @@ def display_instances(count, image, boxes, masks, ids, names, scores):
 
             #Crop the image with some defined offset
             crop_img = mat_mask[y1+offset_head:y2-offset_h, x1+offset_w:x2-offset_w]
-            
-            '''PIL_image = Image.fromarray(crop_img.astype('uint8'), 'RGB')
-            PIL_image.thumbnail((128, 128),Image.ANTIALIAS)'''
 
             #Return one single dominant color
             rgb_color = get_dominant(crop_img)
@@ -233,7 +232,7 @@ def display_instances(count, image, boxes, masks, ids, names, scores):
 
             team = getTeam(image, rgb_color)
 
-            f.write('{},-1,{},{},{},{},{},-1,-1,-1,{}\n'.format(count, x1, y1, x2 - x1, y2 - y1, score, team))
+            f.write('{},-1,{},{},{},{},{},-1,-1,-1,{}\n'.format(count, x1*resize, y1*resize, (x2 - x1)*resize, (y2 - y1)*resize, score, team))
 
     #Group to 3 cluster all the color found in the frame's bboxes
     clusters, counts = parse_colors(color_list, 3)
@@ -248,7 +247,7 @@ def display_instances(count, image, boxes, masks, ids, names, scores):
 
     return image
 
-def video_segmentation(model, class_names, video_path):
+def video_segmentation(model, class_names, video_path, resize=3):
     f = open("det/det_player_maskrcnn.txt", "w").close()
     
     # Video capture
@@ -275,6 +274,8 @@ def video_segmentation(model, class_names, video_path):
                 # OpenCV returns images as BGR, convert to RGB
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
+                image = cv2.resize(image, (int(width/resize), int(height/resize)))
+
                 mask = get_mask('roi_mask.jpg')
                 mask = np.expand_dims(mask,2)
                 mask = np.repeat(mask,3,2)
@@ -287,7 +288,7 @@ def video_segmentation(model, class_names, video_path):
                 r = model.detect([image], verbose=0)[0]
 
                 #Process objects
-                frame= display_instances(count, image, r["rois"], r["masks"], r["class_ids"], class_names, r["scores"])
+                frame= display_instances(count, image, r["rois"], r["masks"], r["class_ids"], class_names, r["scores"], resize)
                 # RGB -> BGR to save image to video
                 frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
                 # Add image to video writer
@@ -343,6 +344,7 @@ if __name__ == '__main__':
     class InferenceConfig(coco.CocoConfig):
         GPU_COUNT = 1
         IMAGES_PER_GPU = 1
+        BACKBONE = 'resnet50'
 
     config = InferenceConfig()
     config.display()

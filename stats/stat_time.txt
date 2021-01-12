@@ -1,0 +1,11 @@
+------------------------
+   CPU execution time
+------------------------
+
+CPU: Ryzen 3600 4.5Ghz, 6 Core, 12 thread
+
+Detection maskrcnn (resenet 50): 0.5FPS
+Detection YOLO: -
+
+Tracking CSRT: 5.5 FPS
+

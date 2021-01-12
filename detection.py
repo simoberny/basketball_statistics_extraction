@@ -11,6 +11,7 @@ import cv2
 from time import sleep
 from tqdm import tqdm
 import math
+import time
 
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../../")
@@ -46,7 +47,6 @@ class BasketConfig(Config):
     # Skip detections with < 90% confidence
     DETECTION_MIN_CONFIDENCE = 0.8
     BACKBONE = 'resnet50'
-
 
 # define random colors
 def random_colors(N):
@@ -177,7 +177,6 @@ def color_splash(image, mask):
         splash = gray.astype(np.uint8)
     return splash
 
-
 def detect_and_color_splash(model, image_path=None, video_path=None):
     assert image_path or video_path
 
@@ -239,9 +238,14 @@ def image_segmentation(model, class_names, image_path):
 
     print("Saved to ", file_name)
 
-def video_segmentation(model, class_names, video_path):
+def video_segmentation(model, class_names, video_path, txt_path="det/det_maskrcnn.txt"):
+    start = time.time()
+
+    '''
     stat = open("stats/stat.txt", "a")
-    f = open("det/det_maskrcnn.txt", "w").close()
+    '''
+
+    f = open(txt_path, "w").close()
     
     # Video capture
     vcapture = cv2.VideoCapture(video_path)
@@ -250,6 +254,8 @@ def video_segmentation(model, class_names, video_path):
     fps = vcapture.get(cv2.CAP_PROP_FPS)
 
     length_input = int(vcapture.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    print("Totale frame: {}".format(length_input))
 
     # Define codec and create video writer
     file_name = "output/detection_{:%Y%m%dT%H%M%S}.avi".format(datetime.datetime.now())
@@ -287,12 +293,19 @@ def video_segmentation(model, class_names, video_path):
 
     vwriter.release()
 
+    '''
+    stat.write("\n---- Statistiche Detection ---- \n")
     stat.write("Numero tatale frame: {}\n".format(count))
     stat.write("Numero tatale frame con posizione individuata: {}\n".format(total_det))
 
     stat.close()
+    '''
 
+    end = time.time()
     print("Saved to ", file_name)
+
+    print("Detections time: ", end-start)
+    print("FPS: {}".format(length_input/(end-start)))
     
 if __name__ == '__main__':
     import argparse
@@ -377,8 +390,6 @@ if __name__ == '__main__':
         #class_names = ['BG', 'basketball', 'person']
         class_names = ['BG', 'basketball']
         model.load_weights(weights_path, by_name=True)
-
-
 
     # Train or evaluate
     if args.command == "detect":
