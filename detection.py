@@ -45,7 +45,7 @@ class BasketConfig(Config):
     STEPS_PER_EPOCH = 150
 
     # Skip detections with < 90% confidence
-    DETECTION_MIN_CONFIDENCE = 0.8
+    DETECTION_MIN_CONFIDENCE = 0.90
     BACKBONE = 'resnet50'
 
 # define random colors
@@ -62,8 +62,12 @@ def apply_mask(image, mask, color, alpha=0.7):
     return image
 
 #take the image and apply the mask, box, and Label
-def display_instances(count, image, boxes, masks, ids, names, scores):
+def display_instances(count, image, boxes, masks, ids, names, scores, resize = 2):
     f = open("det/det_maskrcnn.txt", "a")
+
+    #Finetuning of the ball detection to avoid outsiders
+    min_ball_size = 30
+    max_ball_size = 1500
 
     det_ok = 0
 
@@ -92,7 +96,7 @@ def display_instances(count, image, boxes, masks, ids, names, scores):
 
         area = width * height
 
-        if score > 0.65: 
+        if score > 0.90: 
             label = names[ids[i]]
             caption = '{} {:.2f}'.format(label, score) if score else label
             mask = masks[:, :, i]
@@ -100,7 +104,7 @@ def display_instances(count, image, boxes, masks, ids, names, scores):
             image = cv2.rectangle(image, (x1, y1), (x2, y2), (0,255,0), 2)
             image = cv2.putText(image, caption, (x1, y1), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0,255,0), 2)
 
-        if score > 0.80 and area < 1750:
+        if score > 0.90 and min_ball_size < area < max_ball_size:
             if label == 'basketball' or label == 'sports ball':
                 det_ok += 1
 
@@ -115,10 +119,10 @@ def display_instances(count, image, boxes, masks, ids, names, scores):
         caption = '{} {:.2f}'.format(label, score) if best_score else label
         mask = masks[:, :, best_index]
         image = apply_mask(image, mask, (255,0,0))
-        image = cv2.rectangle(image, (x1, y1), (x2, y2), (255,0,0), 2)
+        image = cv2.rectangle(image, (x1, y1), (x2, y2), (255, 0,0), 10)
         image = cv2.putText(image, caption, (x1, y1), cv2.FONT_HERSHEY_COMPLEX, 0.7, (255,0,0), 2)
 
-        f.write('{},-1,{},{},{},{},{},-1,-1,-1\n'.format(count, x1, y1, x2 - x1, y2 - y1, best_score))
+        f.write('{},-1,{},{},{},{},{},-1,-1,-1\n'.format(count, x1*resize, y1*resize, (x2 - x1)*resize, (y2 - y1)*resize, best_score))
 
     f.close()
 
@@ -238,7 +242,7 @@ def image_segmentation(model, class_names, image_path):
 
     print("Saved to ", file_name)
 
-def video_segmentation(model, class_names, video_path, txt_path="det/det_maskrcnn.txt"):
+def video_segmentation(model, class_names, video_path, txt_path="det/det_maskrcnn.txt", resize=2, display=False):
     start = time.time()
 
     '''
@@ -258,10 +262,10 @@ def video_segmentation(model, class_names, video_path, txt_path="det/det_maskrcn
     print("Totale frame: {}".format(length_input))
 
     # Define codec and create video writer
-    file_name = "output/detection_{:%Y%m%dT%H%M%S}.avi".format(datetime.datetime.now())
+    file_name = "output/detection_{:%Y%m%dT%H%M%S}.mp4".format(datetime.datetime.now())
     vwriter = cv2.VideoWriter(file_name,
-                                cv2.VideoWriter_fourcc(*'MJPG'),
-                                fps, (width, height))
+                                cv2.VideoWriter_fourcc(*'mp4v'),
+                                fps, (int(width/resize), int(height/resize)))
     
     count = 0
     success = True
@@ -276,12 +280,23 @@ def video_segmentation(model, class_names, video_path, txt_path="det/det_maskrcn
                 # OpenCV returns images as BGR, convert to RGB
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
+                image = cv2.resize(image, (int(width/resize), int(height/resize)))
+
                 # Detect objects
                 r = model.detect([image], verbose=0)[0]
 
-                frame, st = display_instances(count, image, r["rois"], r["masks"], r["class_ids"], class_names, r["scores"])
+                frame, st = display_instances(count, image, r["rois"], r["masks"], r["class_ids"], class_names, r["scores"], resize)
+
                 # RGB -> BGR to save image to video
                 frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+
+                if display:
+                    toshow = cv2.resize(frame, (int(width/3), int(height/3)))
+
+                    cv2.imshow('YOLO Object Detection', toshow)
+                    if cv2.waitKey(1) & 0xFF == ord('q'):
+                        break
+                
                 # Add image to video writer
                 vwriter.write(frame)
                 count += 1
@@ -329,6 +344,7 @@ if __name__ == '__main__':
     parser.add_argument('--video', required=False,
                         metavar="path or URL to video",
                         help='Video to apply the color splash effect on')
+    parser.add_argument('-d', '--display', required=False)
     args = parser.parse_args()
 
     print("Weights: ", args.weights)
@@ -394,7 +410,7 @@ if __name__ == '__main__':
     # Train or evaluate
     if args.command == "detect":
         if args.video:
-            video_segmentation(model, class_names, video_path=args.video)
+            video_segmentation(model, class_names, video_path=args.video, display=(args.display!=None))
         else: 
             image_segmentation(model, class_names, args.image)
     elif args.command == "splash":

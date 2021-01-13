@@ -45,7 +45,7 @@ class CustomConfig(Config):
     NUM_CLASSES = 1 + 1  # Background + person + ball
 
     # Number of training steps per epoch
-    STEPS_PER_EPOCH = 150
+    STEPS_PER_EPOCH = 100
     DETECTION_MIN_CONFIDENCE = 0.8
     BACKBONE = 'resnet50'
 
@@ -123,7 +123,7 @@ class CustomDataset(utils.Dataset):
 #  Training
 ############################################################
 
-def train(model, dataset):
+def train(model, dataset, epoch):
     # Training dataset.
     dataset_train = CustomDataset()
     dataset_train.load_custom(dataset, "train")
@@ -138,7 +138,7 @@ def train(model, dataset):
     start_train = time.time()
     model.train(dataset_train, dataset_val,
                 learning_rate=config.LEARNING_RATE,
-                epochs=100,
+                epochs=epoch,
                 layers='heads')
     end_train = time.time()
 
@@ -157,6 +157,10 @@ if __name__ == '__main__':
     parser.add_argument('--dataset', required=True,
                         metavar="path to dataset url",
                         help='Dataset should contain train and val')
+    parser.add_argument('--epoch', type=int, required=False,
+                        metavar="number of epoch",
+                        default=100,
+                        help='Epoch should be higher than 50')
     args = parser.parse_args()
 
     #Load configuration
@@ -182,4 +186,4 @@ if __name__ == '__main__':
         model.load_weights(model.find_last(), by_name=True)
 
     #Start training
-    train(model, dataset)
+    train(model, dataset, int(args.epoch))

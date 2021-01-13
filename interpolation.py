@@ -76,7 +76,7 @@ def interpolation(detection_path):
     stat.write("\n Contributo interpolazione: {}".format(inter_frame))
     stat.close()
 
-    save_mot(dict=gt_dict, txt="det_complete.txt")
+    save_mot(dic=gt_dict, txt="det/det_interpolation.txt")
 
     return gt_dict
     
@@ -97,4 +97,4 @@ if __name__ == '__main__':
     print("Detections: ", args.det)
 
     dict_finale = interpolation(args.det)
-    save_to_video(dict_finale, args.video, 'output/det_track_inter.avi')
+    save_to_video(dict_finale, args.video, 'output/det_track_inter.mp4')

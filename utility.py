@@ -137,15 +137,12 @@ def get_dict(filename):
     return gt_dict
 
 #Save dict version of tracking to mot txt (only one track for frame)
-def save_mot(dict, txt):
-    f = open("det/det_interpolation.txt", "w")
-
-    #Convert file detection to dictionary
-    gt_dict = get_dict(detection_path)
+def save_mot(dic, txt):
+    f = open(txt, "w")
 
     i = 0
-    while (i in gt_dict): 
-        track, score, _, _ = get_gt(i, gt_dict)
+    while (i in dic): 
+        track, score, _, _ = get_gt(i, dic)
 
         if track != []:
             f.write('{},-1,{},{},{},{},{},-1,-1,-1\n'.format(i, track[0][0], track[0][1], track[0][2], track[0][3], score[0]))
@@ -160,7 +157,7 @@ def save_to_video(det_dict, input_path, out_path):
     length_input = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
 
     # Output video
-    fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+    fourcc = cv2.VideoWriter_fourcc(*'MP4V')
     out = cv2.VideoWriter(out_path, fourcc, 30.0, (int(video.get(3)),int(video.get(4))))
 
     frame_id = 0

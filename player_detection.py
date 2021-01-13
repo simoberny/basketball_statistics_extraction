@@ -13,6 +13,7 @@ from tqdm import tqdm
 import math
 from PIL import Image
 from math import sqrt
+import time
 
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../../")
@@ -247,7 +248,9 @@ def display_instances(count, image, boxes, masks, ids, names, scores, resize):
 
     return image
 
-def video_segmentation(model, class_names, video_path, resize=3):
+def video_segmentation(model, class_names, video_path, resize=2):
+    start = time.time()
+
     f = open("det/det_player_maskrcnn.txt", "w").close()
     
     # Video capture
@@ -259,10 +262,10 @@ def video_segmentation(model, class_names, video_path, resize=3):
     length_input = int(vcapture.get(cv2.CAP_PROP_FRAME_COUNT))
 
     # Define codec and create video writer
-    file_name = "output/detection_{:%Y%m%dT%H%M%S}.avi".format(datetime.datetime.now())
+    file_name = "output/detection_player_{:%Y%m%dT%H%M%S}.avi".format(datetime.datetime.now())
     vwriter = cv2.VideoWriter(file_name,
                                 cv2.VideoWriter_fourcc(*'MJPG'),
-                                fps, (width, height))
+                                fps, (int(width/resize), int(height/resize)))
     
     count = 0
     success = True
@@ -274,8 +277,8 @@ def video_segmentation(model, class_names, video_path, resize=3):
                 # OpenCV returns images as BGR, convert to RGB
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-                image = cv2.resize(image, (int(width/resize), int(height/resize)))
-
+                # Basket pitch mask
+                '''
                 mask = get_mask('roi_mask.jpg')
                 mask = np.expand_dims(mask,2)
                 mask = np.repeat(mask,3,2)
@@ -283,12 +286,16 @@ def video_segmentation(model, class_names, video_path, resize=3):
                 #Apply pitch mask to esclude the people outside
                 image = image * mask
                 image = image.astype(np.uint8)
+                '''
+
+                # Resize for better performance
+                image = cv2.resize(image, (int(width/resize), int(height/resize)))
 
                 #Detect objects
                 r = model.detect([image], verbose=0)[0]
 
                 #Process objects
-                frame= display_instances(count, image, r["rois"], r["masks"], r["class_ids"], class_names, r["scores"], resize)
+                frame = display_instances(count, image, r["rois"], r["masks"], r["class_ids"], class_names, r["scores"], resize)
                 # RGB -> BGR to save image to video
                 frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
                 # Add image to video writer
@@ -301,7 +308,11 @@ def video_segmentation(model, class_names, video_path, resize=3):
 
     vwriter.release()
 
+    end = time.time()
     print("Saved to ", file_name)
+
+    print("Detections time: ", end-start)
+    print("FPS: {}".format(length_input/(end-start)))
     
 if __name__ == '__main__':
     import argparse
@@ -344,7 +355,6 @@ if __name__ == '__main__':
     class InferenceConfig(coco.CocoConfig):
         GPU_COUNT = 1
         IMAGES_PER_GPU = 1
-        BACKBONE = 'resnet50'
 
     config = InferenceConfig()
     config.display()

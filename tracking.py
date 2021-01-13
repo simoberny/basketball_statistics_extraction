@@ -48,8 +48,8 @@ def opencv_tracking(video_path, detection_path, resize=2, txt_path="det/det_trac
     print("Totale frame: {}".format(length_input))
 
     # Output video
-    fourcc = cv2.VideoWriter_fourcc(*'MJPG')
-    out = cv2.VideoWriter('output/tracking.avi',fourcc, 30.0, (int(video.get(3)),int(video.get(4))))
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    out = cv2.VideoWriter('output/tracking.mp4',fourcc, 30.0, (int(video.get(3)),int(video.get(4))))
     
     if not video.isOpened():
         print ("Could not open video")
@@ -63,6 +63,7 @@ def opencv_tracking(video_path, detection_path, resize=2, txt_path="det/det_trac
     ret = True
     success = False
     initBB = None
+    best_score = 0
 
     det_frame = 0
     track_frame = 0
@@ -72,7 +73,7 @@ def opencv_tracking(video_path, detection_path, resize=2, txt_path="det/det_trac
     prev_box = [0, 0]
     frame_diff = 0
 
-    bbox_offset = 8
+    bbox_offset = 10
 
     with tqdm(total=length_input, file=sys.stdout) as pbar:
         while ret:
@@ -94,8 +95,9 @@ def opencv_tracking(video_path, detection_path, resize=2, txt_path="det/det_trac
             if len(boxes) > 0:
                 det_frame+=1
 
+            #If no bbox initialized
             if initBB is None or frame_id % 1 == 0:
-                min_distance = 9999
+                min_distance = 99999
 
                 for i, bbox in enumerate(boxes):
                     coor = np.array(bbox[:4], dtype=np.int32)
@@ -104,9 +106,17 @@ def opencv_tracking(video_path, detection_path, resize=2, txt_path="det/det_trac
                     initBB = (coor[0] - bbox_offset, coor[1] - bbox_offset, coor[2] + 2*bbox_offset, coor[3] + 2*bbox_offset)
 
                     #Difference between new detections and last tracking by CSRT
-                    eucl = math.sqrt((coor[0] - prev_box[0]) ** 2 + (coor[1] - prev_box[1]) ** 2)
+                    eucl = math.sqrt((coor[0] - prev_box[0]) ** 2 + (coor[1] - prev_box[1]) ** 2)             
 
-                    if (prev_box[0] == 0 and prev_box[1] == 0) or (frame_diff > 3 or eucl < 50): 
+                    #Check if bbox is close enough in about N frames
+                    if (prev_box[0] == 0 and prev_box[1] == 0) or initBB is None:
+                        if scores[i] > best_score: 
+                            tracker = cv2.TrackerCSRT_create()
+                            tracker.init(frame, initBB)
+                            fps = FPS().start()
+                            best_score = scores[i]
+                    elif (frame_diff > 8 or eucl < 150): 
+                        #Get the closest bbox
                         if eucl < min_distance: 
                             min_distance = eucl
                             
@@ -119,7 +129,11 @@ def opencv_tracking(video_path, detection_path, resize=2, txt_path="det/det_trac
                             frame_diff = 0        
                     else:
                         frame_diff += 1
+
+                        cv2.putText(frame, "Frame without valid det: {}".format(frame_diff), (16, 50),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2)
                             
+            # If there is a new bbox, update the tracker
             if initBB is not None: 
                 (success, tracked_box) = tracker.update(frame)
                 #(success, tracked_boxes) = trackers.update(frame)

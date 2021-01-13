@@ -4,8 +4,39 @@
 
 CPU: Ryzen 3600 4.5Ghz, 6 Core, 12 thread
 
-Detection maskrcnn (resenet 50): 0.5FPS
+-- Palla
+
+Detection maskrcnn (resenet 50): 0.7 FPS
+Detection YOLO: 
+   ++ 4 FPS with 416x416 res
+   ++ 0.77 with 1024x1024 res
+
+Tracking CSRT: 7+ FPS
+
+-- Player
+
+Detection maskrcnn (resenet 100): 0.4 FPS
 Detection YOLO: -
 
-Tracking CSRT: 5.5 FPS
+Tracking: -
 
+------------------------
+   GPU execution time
+------------------------
+
+GPU on Colab
+
+-- Palla
+
+Detection maskrcnn (resenet 50): 3 FPS 
+Detection YOLO: -
+
+Tracking CSRT: 4+ FPS
+(Probrably Colab is not using GPU for it, and processor is slower than mine)
+
+-- Player
+
+Detection maskrcnn (resenet 100): ?
+Detection YOLO: -
+
+Tracking: -

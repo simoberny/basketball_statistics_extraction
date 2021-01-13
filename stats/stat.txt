@@ -13,3 +13,139 @@ Numero tatale frame tracked: 313
 Numero tatale frame: 331
 Numero tatale frame con posizione individuata: 263
 Numero tatale frame tracked: 313
+
+---- Tracking ----
+Numero tatale frame: 793
+Numero tatale frame con posizione individuata: 649
+Numero tatale frame tracked: 791
+
+---- Tracking ----
+Numero tatale frame: 355
+Numero tatale frame con posizione individuata: 147
+Numero tatale frame tracked: 348
+
+---- Tracking ----
+Numero tatale frame: 355
+Numero tatale frame con posizione individuata: 335
+Numero tatale frame tracked: 355
+
+---- Tracking ----
+Numero tatale frame: 355
+Numero tatale frame con posizione individuata: 335
+Numero tatale frame tracked: 355
+
+---- Tracking ----
+Numero tatale frame: 355
+Numero tatale frame con posizione individuata: 335
+Numero tatale frame tracked: 355
+
+---- Tracking ----
+Numero tatale frame: 355
+Numero tatale frame con posizione individuata: 335
+Numero tatale frame tracked: 355
+
+---- Tracking ----
+Numero tatale frame: 355
+Numero tatale frame con posizione individuata: 335
+Numero tatale frame tracked: 284
+
+---- Tracking ----
+Numero tatale frame: 355
+Numero tatale frame con posizione individuata: 335
+Numero tatale frame tracked: 284
+
+---- Tracking ----
+Numero tatale frame: 355
+Numero tatale frame con posizione individuata: 334
+Numero tatale frame tracked: 355
+
+---- Tracking ----
+Numero tatale frame: 768
+Numero tatale frame con posizione individuata: 495
+Numero tatale frame tracked: 742
+
+---- Tracking ----
+Numero tatale frame: 768
+Numero tatale frame con posizione individuata: 495
+Numero tatale frame tracked: 742
+
+---- Tracking ----
+Numero tatale frame: 768
+Numero tatale frame con posizione individuata: 495
+Numero tatale frame tracked: 742
+
+---- Tracking ----
+Numero tatale frame: 768
+Numero tatale frame con posizione individuata: 417
+Numero tatale frame tracked: 742
+
+---- Tracking ----
+Numero tatale frame: 768
+Numero tatale frame con posizione individuata: 417
+Numero tatale frame tracked: 752
+
+---- Tracking ----
+Numero tatale frame: 768
+Numero tatale frame con posizione individuata: 417
+Numero tatale frame tracked: 752
+
+---- Tracking ----
+Numero tatale frame: 919
+Numero tatale frame con posizione individuata: 311
+Numero tatale frame tracked: 888
+
+ Contributo interpolazione: 16
+ Contributo interpolazione: 16
+ Contributo interpolazione: 16
+ Contributo interpolazione: 16
+---- Tracking ----
+Numero tatale frame: 414
+Numero tatale frame con posizione individuata: 6
+Numero tatale frame tracked: 73
+
+---- Tracking ----
+Numero tatale frame: 414
+Numero tatale frame con posizione individuata: 4
+Numero tatale frame tracked: 339
+
+---- Tracking ----
+Numero tatale frame: 414
+Numero tatale frame con posizione individuata: 219
+Numero tatale frame tracked: 386
+
+---- Tracking ----
+Numero tatale frame: 375
+Numero tatale frame con posizione individuata: 4
+Numero tatale frame tracked: 54
+
+---- Tracking ----
+Numero tatale frame: 375
+Numero tatale frame con posizione individuata: 190
+Numero tatale frame tracked: 227
+
+---- Tracking ----
+Numero tatale frame: 375
+Numero tatale frame con posizione individuata: 269
+Numero tatale frame tracked: 280
+
+---- Tracking ----
+Numero tatale frame: 375
+Numero tatale frame con posizione individuata: 269
+Numero tatale frame tracked: 337
+
+---- Tracking ----
+Numero tatale frame: 919
+Numero tatale frame con posizione individuata: 24
+Numero tatale frame tracked: 763
+
+---- Tracking ----
+Numero tatale frame: 919
+Numero tatale frame con posizione individuata: 414
+Numero tatale frame tracked: 707
+
+---- Tracking ----
+Numero tatale frame: 331
+Numero tatale frame con posizione individuata: 154
+Numero tatale frame tracked: 305
+
+ Contributo interpolazione: 6
