@@ -48,120 +48,6 @@ class BasketConfig(Config):
     DETECTION_MIN_CONFIDENCE = 0.90
     BACKBONE = 'resnet50'
 
-# define random colors
-def random_colors(N):
-    np.random.seed(1)
-    colors = [tuple(255 * np.random.rand(3)) for _ in range(N)]
-    return colors
- 
-#apply mask to image
-def apply_mask(image, mask, color, alpha=0.7):
-    for n, c in enumerate(color):
-        image[:, :, n] = np.where(mask == 1, image[:, :, n] * (1-alpha) + alpha * c, image[:, :, n])
-    
-    return image
-
-#take the image and apply the mask, box, and Label
-def display_instances(count, image, boxes, masks, ids, names, scores, resize = 2):
-    f = open("det/det_maskrcnn.txt", "a")
-
-    #Finetuning of the ball detection to avoid outsiders
-    min_ball_size = 30
-    max_ball_size = 1500
-
-    det_ok = 0
-
-    n_instances = boxes.shape[0]
-    colors = random_colors(n_instances)
-
-    best_index = -1
-    best_score = 0
-
-    if not n_instances:
-        return image, 0
-        #print('NO INSTANCES TO DISPLAY')
-    else:
-        assert boxes.shape[0] == masks.shape[-1] == ids.shape[0]
-        
-    for i, color in enumerate(colors):
-        if not np.any(boxes[i]):
-            continue
-
-        y1, x1, y2, x2 = boxes[i]
-        label = names[ids[i]]
-        score = scores[i] if scores is not None else None
-
-        width = x2 - x1
-        height = y2 - y1
-
-        area = width * height
-
-        if score > 0.90: 
-            label = names[ids[i]]
-            caption = '{} {:.2f}'.format(label, score) if score else label
-            mask = masks[:, :, i]
-            image = apply_mask(image, mask, (0,255,0))
-            image = cv2.rectangle(image, (x1, y1), (x2, y2), (0,255,0), 2)
-            image = cv2.putText(image, caption, (x1, y1), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0,255,0), 2)
-
-        if score > 0.90 and min_ball_size < area < max_ball_size:
-            if label == 'basketball' or label == 'sports ball':
-                det_ok += 1
-
-            if score > best_score: 
-                best_score = score
-                best_index = i
-
-    
-    if best_index >= 0:
-        y1, x1, y2, x2 = boxes[best_index]
-        label = names[ids[best_index]]
-        caption = '{} {:.2f}'.format(label, score) if best_score else label
-        mask = masks[:, :, best_index]
-        image = apply_mask(image, mask, (255,0,0))
-        image = cv2.rectangle(image, (x1, y1), (x2, y2), (255, 0,0), 10)
-        image = cv2.putText(image, caption, (x1, y1), cv2.FONT_HERSHEY_COMPLEX, 0.7, (255,0,0), 2)
-
-        f.write('{},-1,{},{},{},{},{},-1,-1,-1\n'.format(count, x1*resize, y1*resize, (x2 - x1)*resize, (y2 - y1)*resize, best_score))
-
-    f.close()
-
-    return image, int(det_ok > 0)
-
-#take the image and apply the mask, box, and Label
-def display_instances_image(image, boxes, masks, ids, names, scores):
-    n_instances = boxes.shape[0]
-    colors = random_colors(n_instances)
-
-    if not n_instances:
-        return image
-        #print('NO INSTANCES TO DISPLAY')
-    else:
-        assert boxes.shape[0] == masks.shape[-1] == ids.shape[0]
-        
-    for i, color in enumerate(colors):
-        if not np.any(boxes[i]):
-            continue
-
-        y1, x1, y2, x2 = boxes[i]
-        label = names[ids[i]]
-        score = scores[i] if scores is not None else None
-
-        width = x2 - x1
-        height = y2 - y1
-
-        area = width * height
-
-        if score > 0.65: 
-            label = names[ids[i]]
-            caption = '{} {:.2f}'.format(label, score) if score else label
-            mask = masks[:, :, i]
-            image = apply_mask(image, mask, (0,255,0))
-            image = cv2.rectangle(image, (x1, y1), (x2, y2), (0,255,0), 10)
-            image = cv2.putText(image, caption, (x1, y1-20), cv2.FONT_HERSHEY_COMPLEX, 3, (0,255,0), 2)
-
-    return image
-
 def color_splash(image, mask):
     """Apply color splash effect.
     image: RGB image [height, width, 3]
@@ -231,6 +117,120 @@ def detect_and_color_splash(model, image_path=None, video_path=None):
         vwriter.release()
     print("Saved to ", file_name)
 
+# define random colors
+def random_colors(N):
+    np.random.seed(1)
+    colors = [tuple(255 * np.random.rand(3)) for _ in range(N)]
+    return colors
+ 
+#apply mask to image
+def apply_mask(image, mask, color, alpha=0.7):
+    for n, c in enumerate(color):
+        image[:, :, n] = np.where(mask == 1, image[:, :, n] * (1-alpha) + alpha * c, image[:, :, n])
+    
+    return image
+
+#take the image and apply the mask, box, and Label
+def display_instances(count, image, boxes, masks, ids, names, scores, resize):
+    f = open("det/det_maskrcnn.txt", "a")
+
+    #Finetuning of the ball detection to avoid outsiders
+    min_ball_size = 30
+    max_ball_size = 1500
+
+    det_ok = 0
+
+    n_instances = boxes.shape[0]
+    colors = random_colors(n_instances)
+
+    best_index = -1
+    best_score = 0
+
+    if not n_instances:
+        return image, 0
+        #print('NO INSTANCES TO DISPLAY')
+    else:
+        assert boxes.shape[0] == masks.shape[-1] == ids.shape[0]
+        
+    for i, color in enumerate(colors):
+        if not np.any(boxes[i]):
+            continue
+
+        y1, x1, y2, x2 = boxes[i]
+        label = names[ids[i]]
+        score = scores[i] if scores is not None else None
+
+        width = x2 - x1
+        height = y2 - y1
+
+        area = width * height
+
+        if score > 0.85: 
+            label = names[ids[i]]
+            caption = '{} {:.2f}'.format(label, score) if score else label
+            mask = masks[:, :, i]
+            image = apply_mask(image, mask, (0,255,0))
+            image = cv2.rectangle(image, (x1, y1), (x2, y2), (0,255,0), 2)
+            image = cv2.putText(image, caption, (x1, y1), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0,255,0), 2)
+
+        if score > 0.90 and min_ball_size < area < max_ball_size:
+            if label == 'basketball' or label == 'sports ball':
+                det_ok += 1
+
+            if score > best_score: 
+                best_score = score
+                best_index = i
+
+    
+    if best_index >= 0:
+        y1, x1, y2, x2 = boxes[best_index]
+        label = names[ids[best_index]]
+        caption = '{} {:.2f}'.format(label, score) if best_score else label
+        mask = masks[:, :, best_index]
+        image = apply_mask(image, mask, (255,0,0))
+        image = cv2.rectangle(image, (x1, y1), (x2, y2), (255, 0,0), 10)
+        image = cv2.putText(image, caption, (x1, y1), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255,0,0), 2)
+
+        f.write('{},-1,{},{},{},{},{},-1,-1,-1\n'.format(count, x1*resize, y1*resize, (x2 - x1)*resize, (y2 - y1)*resize, best_score))
+
+    f.close()
+
+    return image, int(det_ok > 0)
+
+#take the image and apply the mask, box, and Label
+def display_instances_image(image, boxes, masks, ids, names, scores):
+    n_instances = boxes.shape[0]
+    colors = random_colors(n_instances)
+
+    if not n_instances:
+        return image
+        #print('NO INSTANCES TO DISPLAY')
+    else:
+        assert boxes.shape[0] == masks.shape[-1] == ids.shape[0]
+        
+    for i, color in enumerate(colors):
+        if not np.any(boxes[i]):
+            continue
+
+        y1, x1, y2, x2 = boxes[i]
+        label = names[ids[i]]
+        score = scores[i] if scores is not None else None
+
+        width = x2 - x1
+        height = y2 - y1
+
+        area = width * height
+
+        if score > 0.75: 
+            label = names[ids[i]]
+            caption = '{} {:.2f}'.format(label, score) if score else label
+            mask = masks[:, :, i]
+            image = apply_mask(image, mask, (0,255,0))
+            image = cv2.rectangle(image, (x1, y1), (x2, y2), (0,255,0), 10)
+            image = cv2.putText(image, caption, (x1, y1-20), cv2.FONT_HERSHEY_COMPLEX, 3, (0,255,0), 2)
+
+    return image
+
 def image_segmentation(model, class_names, image_path):
     image = skimage.io.imread(image_path)
     r = model.detect([image], verbose=0)[0]
@@ -242,13 +242,10 @@ def image_segmentation(model, class_names, image_path):
 
     print("Saved to ", file_name)
 
-def video_segmentation(model, class_names, video_path, txt_path="det/det_maskrcnn.txt", resize=2, display=False):
+def video_segmentation(model, class_names, video_path, txt_path="det/det_maskrcnn.txt", resize=1, display=False):
     start = time.time()
 
-    '''
     stat = open("stats/stat.txt", "a")
-    '''
-
     f = open(txt_path, "w").close()
     
     # Video capture
@@ -280,6 +277,7 @@ def video_segmentation(model, class_names, video_path, txt_path="det/det_maskrcn
                 # OpenCV returns images as BGR, convert to RGB
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
+                #Reduce computing impact
                 image = cv2.resize(image, (int(width/resize), int(height/resize)))
 
                 # Detect objects
@@ -308,13 +306,11 @@ def video_segmentation(model, class_names, video_path, txt_path="det/det_maskrcn
 
     vwriter.release()
 
-    '''
     stat.write("\n---- Statistiche Detection ---- \n")
     stat.write("Numero tatale frame: {}\n".format(count))
     stat.write("Numero tatale frame con posizione individuata: {}\n".format(total_det))
 
     stat.close()
-    '''
 
     end = time.time()
     print("Saved to ", file_name)
@@ -381,8 +377,7 @@ if __name__ == '__main__':
     # Load weights
     print("Loading weights ", weights_path)
     if args.weights.lower() == "coco":
-        # Exclude the last layers because they require a matching
-        # number of classes
+        #Coco labels
         class_names = ['BG', 'person', 'bicycle', 'car', 'motorcycle', 'airplane',
                'bus', 'train', 'truck', 'boat', 'traffic light',
                'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird',
@@ -399,6 +394,8 @@ if __name__ == '__main__':
                'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors',
                'teddy bear', 'hair drier', 'toothbrush']
 
+        # Exclude the last layers because they require a matching
+        # number of classes
         model.load_weights(weights_path, by_name=True, exclude=[
             "mrcnn_class_logits", "mrcnn_bbox_fc",
             "mrcnn_bbox", "mrcnn_mask"])

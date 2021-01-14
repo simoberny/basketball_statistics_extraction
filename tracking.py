@@ -192,8 +192,8 @@ def opencv_tracking(video_path, detection_path, resize=2, txt_path="det/det_trac
     out.release()
     stat.close()
 
+    #Timing information
     end = time.time()
-
     print("Detections time: ", end-start)
     print("FPS: {}".format(length_input/(end-start)))
 
@@ -203,7 +203,8 @@ if __name__ == '__main__':
     # Parse command line arguments
     parser = argparse.ArgumentParser(
         description='Train Mask R-CNN to detect balloons.')
-    parser.add_argument('--det', required=True,
+    parser.add_argument('--det', required=False,
+                        default="det/det_maskrcnn.txt",
                         metavar="/path/to/balloon/dataset/",
                         help='Path to detections file')
     parser.add_argument('--video', required=True,

@@ -36,7 +36,7 @@ Tracking CSRT: 4+ FPS
 
 -- Player
 
-Detection maskrcnn (resenet 100): ?
+Detection maskrcnn (resenet 100): 0.2 FPS ????? No reason
 Detection YOLO: -
 
 Tracking: -

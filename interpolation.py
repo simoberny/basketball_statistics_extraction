@@ -39,6 +39,7 @@ def interpolation(detection_path):
         if track == []:
             nt+=1
 
+        #Check if there is hole of max 50 frames
         if track != [] and nt > 0 and nt < 50:
             print("NT: {}, index ora: {}".format(nt, i))
 
@@ -89,7 +90,8 @@ if __name__ == '__main__':
     parser.add_argument('--video', required=True,
                         metavar="path or URL to video",
                         help='Video to apply the tracking on')
-    parser.add_argument('--det', required=True,
+    parser.add_argument('--det', required=False,
+                        default="det/det_track_maskrcnn.txt",
                         metavar="/path/to/balloon/dataset/",
                         help='Path to detections file')
     args = parser.parse_args()

@@ -1,7 +1,8 @@
 # User defined
 output/
-dataset/train/*
-dataset/val/*
+dataset/train/
+dataset/val/
+det/
 
 
 # Byte-compiled / optimized / DLL files
