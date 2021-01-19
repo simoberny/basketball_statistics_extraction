@@ -8,18 +8,13 @@ import random
 import itertools
 import colorsys
 import cv2
-from time import sleep
-from tqdm import tqdm
 import math
 from PIL import Image
-from math import sqrt
-import time
 
 # Global teams color initialization
 team_1 = [60,60,60,0]
 team_2 = [200,200,200,0]
 arbitro = [0, 102, 204, 0]
-
 
 # create binary mask
 def get_mask(filename):
@@ -27,21 +22,21 @@ def get_mask(filename):
 	mask = mask / 255.0
 	return mask
  
-# apply mask to image
+# Apply mask to image
 def apply_mask(image, mask, color, alpha=0.7):
     for n, c in enumerate(color):
         image[:, :, n] = np.where(mask == 1, image[:, :, n] * (1-alpha) + alpha * c, image[:, :, n])
     
     return image
 
-# apply green screen on out of the mask
+# Apply green screen on out of the mask
 def cut_by_mask(image, mask, color=(0,255,0)):
     for n, c in enumerate(color):
         image[:, :, n] = np.where(mask == 1, image[:, :, n], c)
     
     return image
 
-# return dominant color from image using Kmeans
+# Return dominant color from image using Kmeans
 def get_dominant(img):
     global arbitro
     data = np.reshape(img, (-1,3))
@@ -71,6 +66,7 @@ def get_dominant(img):
 
     return best_palette.astype(np.uint8)
 
+# Apply Kmeans on a list of color to extract n of it
 def parse_colors(lst, n):
     cluster = []
     image_array = np.reshape(lst, (len(lst), 3))
@@ -83,6 +79,7 @@ def parse_colors(lst, n):
 
     return palette, counts
 
+# Draw team color box on image
 def draw_team(image, clusters, counts):
     global team_1
     global team_2
@@ -133,6 +130,7 @@ def draw_team(image, clusters, counts):
 
     return image
 
+# Return the team corresponding to the color based on the similarity
 def getTeam(image, color):
     global team_1
     global team_2

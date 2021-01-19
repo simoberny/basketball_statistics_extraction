@@ -61,7 +61,7 @@ Chained and merged detection phase plus tracking
 python realtime_ball.py -d --video=/path/to/video --weight=[path to your new .h5 weights]
 ```
 
-#### Extract Statistics
+#### Ball Detection + Tracking and Player Extration all-in-one (no stat for now)
 Chained and merged ball detection phase and player extraction
 ```
 python realtime.py -d --video=/path/to/video --weight=[path to your new .h5 weights]

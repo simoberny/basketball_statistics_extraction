@@ -127,13 +127,6 @@ def ball_instances(count, image, boxes, masks, ids, names, scores, resize):
 
     return image, dict_result
 
-def general_detection(image, model):
-    from mrcnn.config import Config
-    from mrcnn import model as modellib, utils
-    from mrcnn import visualize
-
-    return model.detect([image], verbose=0)[0]
-
 def ball_tracking(ball_model, video_path, txt_path="det/det_track_maskrcnn.txt", resize=2, display = False):
     # Different classes for different train
     ball_class = ['BG', 'basketball']
