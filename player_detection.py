@@ -15,7 +15,7 @@ from PIL import Image
 from math import sqrt
 import time
 
-from player_utility import *
+from utility.player_utility import *
 
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../../")

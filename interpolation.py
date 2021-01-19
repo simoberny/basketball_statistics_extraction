@@ -13,7 +13,7 @@ from imutils.video import FPS
 from tqdm import tqdm
 import math
 
-from utility import *
+from utility.utility import *
 
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../../")

@@ -12,7 +12,6 @@ from time import sleep
 from tqdm import tqdm
 import math
 import time
-from multiprocessing import Pool
 
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../../")

@@ -13,7 +13,7 @@ from tqdm import tqdm
 import math
 import time
 
-from player_utility import *
+from utility.player_utility import *
 
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../../")
@@ -206,7 +206,7 @@ def general_detection(image, model):
     return model.detect([image], verbose=0)[0]
 
 def video_detection(ball_model, player_model, video_path, txt_path="det/det_track_maskrcnn.txt", resize=2, display=False):
-    f = open(txt_path, "w").close()
+    f = open(txt_path, "w")
 
     # Video capture
     vcapture = cv2.VideoCapture(video_path)

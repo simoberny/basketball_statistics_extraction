@@ -4,7 +4,7 @@ import os
 import sys
 
 #My own library with utils functions
-from utility import *
+from utility.utility import *
 
 if __name__ == '__main__':
     import argparse

@@ -15,7 +15,7 @@ import math
 import time
 
 #My own library with utils functions
-from utility import *
+from utility.utility import *
 
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../../")

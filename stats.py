@@ -11,7 +11,7 @@ import skimage.io
 from imutils.video import FPS
 import math
 
-from utility import *
+from utility.utility import *
 
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../../")
