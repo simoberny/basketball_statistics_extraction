@@ -1,0 +1,338 @@
+import os
+import sys
+import json
+import datetime
+import numpy as np
+import skimage.draw
+import random
+import itertools
+import colorsys
+import cv2
+from time import sleep
+from tqdm import tqdm
+import math
+import time
+
+from player_utility import *
+
+# Root directory of the project
+ROOT_DIR = os.path.abspath("../../")
+prev_det = [0,0]
+
+# Import Mask RCNN
+sys.path.append(ROOT_DIR)  # To find local version of the library
+from mrcnn.config import Config
+from mrcnn import model as modellib, utils
+from mrcnn import visualize
+
+# Path to trained weights file
+COCO_WEIGHTS_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
+
+# Directory to save logs and model checkpoints, if not provided
+# through the command line argument --logs
+DEFAULT_LOGS_DIR = os.path.join(ROOT_DIR, "logs")
+
+# Import COCO config
+sys.path.append(os.path.join(ROOT_DIR, "samples/coco/"))  # To find local version
+import coco
+
+# Different classes for different train
+ball_class = ['BG', 'basketball']
+coco_class = ['BG', 'person', 'bicycle', 'car', 'motorcycle', 'airplane',
+    'bus', 'train', 'truck', 'boat', 'traffic light',
+    'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird',
+    'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant', 'bear',
+    'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie',
+    'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball',
+    'kite', 'baseball bat', 'baseball glove', 'skateboard',
+    'surfboard', 'tennis racket', 'bottle', 'wine glass', 'cup',
+    'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple',
+    'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza',
+    'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed',
+    'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote',
+    'keyboard', 'cell phone', 'microwave', 'oven', 'toaster',
+    'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors',
+    'teddy bear', 'hair drier', 'toothbrush']
+
+# Base config for ball detection
+class BasketConfig(Config):
+    NAME = "basket"
+    IMAGES_PER_GPU = 2
+    NUM_CLASSES = 1 + 1  # Background + basketball
+    STEPS_PER_EPOCH = 150
+    DETECTION_MIN_CONFIDENCE = 0.90
+    BACKBONE = 'resnet50'
+
+# define random colors
+def random_colors(N):
+    np.random.seed(1)
+    colors = [tuple(255 * np.random.rand(3)) for _ in range(N)]
+    return colors
+ 
+#apply mask to image
+def apply_mask(image, mask, color, alpha=0.7):
+    for n, c in enumerate(color):
+        image[:, :, n] = np.where(mask == 1, image[:, :, n] * (1-alpha) + alpha * c, image[:, :, n])
+    
+    return image
+
+
+#Take the image and apply the mask, box, and Label
+def player_instances(count, image, boxes, masks, ids, names, scores, resize):
+    f = open("det/det_player_maskrcnn.txt", "a")
+
+    n_instances = boxes.shape[0]
+    colors = random_colors(n_instances)
+
+    color_list = []
+
+    if not n_instances:
+        return image
+    else:
+        assert boxes.shape[0] == masks.shape[-1] == ids.shape[0]
+        
+    for i, color in enumerate(colors):
+        if not np.any(boxes[i]):
+            continue
+
+        y1, x1, y2, x2 = boxes[i]
+        label = names[ids[i]]
+        score = scores[i] if scores is not None else None
+
+        width = x2 - x1
+        height = y2 - y1
+        
+        #If a player
+        if score > 0.75 and label == 'person':
+            mask = masks[:, :, i]
+
+            #Create a masked image where the pixel not in mask is green
+            image_to_edit = image.copy()
+            mat_mask = cut_by_mask(image_to_edit, mask)
+
+            offset_w = int(width/6)
+            offset_h = int(height/3)
+            offset_head = int(height/8)
+
+            #Crop the image with some defined offset
+            crop_img = mat_mask[y1+offset_head:y2-offset_h, x1+offset_w:x2-offset_w]
+
+            #Return one single dominant color
+            rgb_color = get_dominant(crop_img)
+
+            #Add to the list of all the bbox color found in the single frame
+            color_list.append(rgb_color)
+
+            rgb_tuple = tuple([int(rgb_color[0]), int(rgb_color[1]), int(rgb_color[2])]) 
+
+            caption = '{} {:.2f}'.format(label, score) if score else label
+        
+            image = apply_mask(image, mask, rgb_tuple)
+            image = cv2.rectangle(image, (x1, y1), (x2, y2), rgb_tuple, 3)
+            image = cv2.putText(image, caption, (x1, y1), cv2.FONT_HERSHEY_COMPLEX, 0.7, rgb_tuple, 2)
+
+            team = getTeam(image, rgb_color)
+
+            f.write('{},-1,{},{},{},{},{},-1,-1,-1 {}\n'.format(count, x1*resize, y1*resize, (x2 - x1)*resize, (y2 - y1)*resize, score, team))
+
+    #Group to 3 cluster all the color found in the frame's bboxes
+    clusters, counts = parse_colors(color_list, 3)
+
+    #Update team's stats
+    image = draw_team(image, clusters, counts)
+    f.close()
+
+    return image
+
+#take the image and apply the mask, box, and Label
+def ball_instances(count, image, boxes, masks, ids, names, scores, resize):
+    f = open("det/det_maskrcnn.txt", "a")
+
+    #Finetuning of the ball detection to avoid outsiders
+    min_ball_size = 30
+    max_ball_size = 1500
+
+    n_instances = boxes.shape[0]
+    colors = random_colors(n_instances)
+
+    best_index = -1
+    best_score = 0
+
+    if not n_instances:
+        return image
+        #print('NO INSTANCES TO DISPLAY')
+    else:
+        assert boxes.shape[0] == masks.shape[-1] == ids.shape[0]
+        
+    for i, color in enumerate(colors):
+        if not np.any(boxes[i]):
+            continue
+
+        y1, x1, y2, x2 = boxes[i]
+        label = names[ids[i]]
+        score = scores[i] if scores is not None else None
+
+        width = x2 - x1
+        height = y2 - y1
+
+        area = width * height
+
+        if score > 0.85: 
+            label = names[ids[i]]
+            caption = '{} {:.2f}'.format(label, score) if score else label
+            mask = masks[:, :, i]
+            image = apply_mask(image, mask, (0,255,0))
+            image = cv2.rectangle(image, (x1, y1), (x2, y2), (0,255,0), 1)
+            #image = cv2.putText(image, caption, (x1, y1), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0,255,0), 2)
+
+        if score > 0.90 and min_ball_size < area < max_ball_size:
+            if score > best_score: 
+                best_score = score
+                best_index = i
+
+    
+    if best_index >= 0:
+        y1, x1, y2, x2 = boxes[best_index]
+        label = names[ids[best_index]]
+        caption = '{} {:.2f}'.format(label, score) if best_score else label
+        mask = masks[:, :, best_index]
+        image = apply_mask(image, mask, (255,0,0))
+        image = cv2.rectangle(image, (x1, y1), (x2, y2), (255, 0,0), 5)
+        image = cv2.putText(image, "BALL", (x1, y1), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255,0,0), 2)
+
+        f.write('{},-1,{},{},{},{},{},-1,-1,-1\n'.format(count, x1*resize, y1*resize, (x2 - x1)*resize, (y2 - y1)*resize, best_score))
+
+    f.close()
+
+    return image
+
+def general_detection(image, model):
+    return model.detect([image], verbose=0)[0]
+
+def video_detection(ball_model, player_model, video_path, txt_path="det/det_maskrcnn.txt", resize=2, display=False):
+    f = open(txt_path, "w").close()
+
+    # Video capture
+    vcapture = cv2.VideoCapture(video_path)
+    width = int(vcapture.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(vcapture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fps = vcapture.get(cv2.CAP_PROP_FPS)
+    length_input = int(vcapture.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    print("Totale frame: {}".format(length_input))
+
+    # Define codec and create video writer
+    file_name = "output/full_detection_{:%Y%m%dT%H%M%S}.mp4".format(datetime.datetime.now())
+    vwriter = cv2.VideoWriter(file_name,
+                                cv2.VideoWriter_fourcc(*'mp4v'),
+                                fps, (int(width/resize), int(height/resize)))
+    
+    count = 0
+    success = True
+    total_det = 0
+
+    start = time.time()
+
+    with tqdm(total=length_input, file=sys.stdout) as pbar:
+        while success:
+            success, image = vcapture.read()
+            if success:
+                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+                #Mask for LATERAL VIEW GAME ONLY!
+                mask = get_mask('roi_mask.jpg')
+                mask = np.expand_dims(mask,2)
+                mask = np.repeat(mask,3,2)
+
+                #Apply pitch mask to esclude the people outside
+                masked_pitch = image * mask
+                masked_pitch = masked_pitch.astype(np.uint8)
+
+                #Reduce computing impact
+                masked_pitch = cv2.resize(masked_pitch, (int(width/resize), int(height/resize)))
+                image = cv2.resize(image, (int(width/resize), int(height/resize)))
+                
+                player_ret = player_model.detect([masked_pitch], verbose=0)[0]
+                ball_ret = ball_model.detect([image], verbose=0)[0]
+
+                # Draw and save bbox result
+                # Process ball
+                frame = ball_instances(count, image, ball_ret["rois"], ball_ret["masks"], ball_ret["class_ids"], ball_class, ball_ret["scores"], resize)
+                
+                # Process player
+                frame = player_instances(count, frame, player_ret["rois"], player_ret["masks"], player_ret["class_ids"], coco_class, player_ret["scores"], resize)
+
+                # RGB -> BGR to save image to video
+                frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+
+                end = time.time()
+                frame_time = end - start
+
+                fps = round(count / frame_time, 2)
+
+                frame = cv2.rectangle(frame, (50,50), (200, 100), (100,100,100), -1)
+                frame = cv2.putText(frame, "{} FPS".format(fps), (80, 80), cv2.FONT_HERSHEY_COMPLEX, 0.7, (230,230,230), 2)
+
+                if display:
+                    #toshow = cv2.resize(frame, (int(width/3), int(height/3)))
+
+                    cv2.imshow('YOLO Object Detection', frame)
+                    if cv2.waitKey(1) & 0xFF == ord('q'):
+                        break
+                
+                # Add image to video writer
+                vwriter.write(frame)
+                count += 1
+
+            #Fancy print
+            pbar.update(1)
+            sleep(0.1)
+    
+    vwriter.release()
+
+    print("Saved to ", file_name)
+
+if __name__ == '__main__':
+    import argparse
+
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description='Train Mask R-CNN to detect balloons.')
+    parser.add_argument('--weights', required=True,
+                        metavar="/path/to/weights.h5",
+                        help="Path to weights .h5 file or 'coco'")
+    parser.add_argument('--logs', required=False,
+                        default=DEFAULT_LOGS_DIR,
+                        metavar="/path/to/logs/",
+                        help='Logs and checkpoints directory (default=logs/)')
+    parser.add_argument('--video', required=True,
+                        metavar="path or URL to video",
+                        help='Video to apply the color splash effect on')
+    parser.add_argument('-d', '--display', required=False, action='store_true')
+    args = parser.parse_args()
+
+    class BallConfig(BasketConfig):
+        GPU_COUNT = 1
+        IMAGES_PER_GPU = 1
+    class PlayerConfig(coco.CocoConfig):
+        GPU_COUNT = 1
+        IMAGES_PER_GPU = 1
+
+    ball_config = BallConfig()
+    player_config = PlayerConfig()
+    #config.display()
+
+    # Create model for ball and player detection
+    player_model = modellib.MaskRCNN(mode="inference", config=player_config, model_dir=args.logs)
+    ball_model = modellib.MaskRCNN(mode="inference", config=ball_config, model_dir=args.logs)
+
+    # Assign the two weights (coco for the player)
+    player_weight = COCO_WEIGHTS_PATH
+    ball_weight = args.weights
+
+    # Assign the weights to the model
+    player_model.load_weights(player_weight, by_name=True)
+    ball_model.load_weights(ball_weight, by_name=True)
+
+    # TODO detection player and ball
+    video_detection(ball_model, player_model, video_path=args.video, display=args.display)

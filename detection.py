@@ -165,7 +165,7 @@ def display_instances(count, image, boxes, masks, ids, names, scores, resize):
 
         area = width * height
 
-        if score > 0.85: 
+        if score > 0.75: 
             label = names[ids[i]]
             caption = '{} {:.2f}'.format(label, score) if score else label
             mask = masks[:, :, i]
@@ -180,7 +180,6 @@ def display_instances(count, image, boxes, masks, ids, names, scores, resize):
             if score > best_score: 
                 best_score = score
                 best_index = i
-
     
     if best_index >= 0:
         y1, x1, y2, x2 = boxes[best_index]
@@ -242,7 +241,7 @@ def image_segmentation(model, class_names, image_path):
 
     print("Saved to ", file_name)
 
-def video_segmentation(model, class_names, video_path, txt_path="det/det_maskrcnn.txt", resize=1, display=False):
+def video_segmentation(model, class_names, video_path, txt_path="det/det_maskrcnn.txt", resize=2, display=False):
     start = time.time()
 
     stat = open("stats/stat.txt", "a")
@@ -407,7 +406,7 @@ if __name__ == '__main__':
     # Train or evaluate
     if args.command == "detect":
         if args.video:
-            video_segmentation(model, class_names, video_path=args.video, display=(args.display!=None))
+            video_segmentation(model, class_names, video_path=args.video, display=(args.display!=None), resize=1)
         else: 
             image_segmentation(model, class_names, args.image)
     elif args.command == "splash":

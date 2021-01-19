@@ -13,12 +13,19 @@ Detection YOLO:
 
 Tracking CSRT: 7+ FPS
 
+Detection + Tracking chained: 0.45 FPS
+
 -- Player
 
 Detection maskrcnn (resenet 100): 0.4 FPS
 Detection YOLO: -
 
 Tracking: -
+
+-- Full detection + ball tracking
+
+Ball (detection + tracking) + Player detection serial: 0.20 FPS
+Ball (detection + tracking) + Player detection parallel: NOPE
 
 ------------------------
    GPU execution time

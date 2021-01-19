@@ -157,3 +157,22 @@ Numero tatale frame tracked: 812
 ---- Statistiche Detection ---- 
 Numero tatale frame: 398
 Numero tatale frame con posizione individuata: 77
+
+---- Statistiche Detection ---- 
+Numero tatale frame: 843
+Numero tatale frame con posizione individuata: 87
+
+---- Statistiche Detection ---- 
+Numero tatale frame: 505
+Numero tatale frame con posizione individuata: 80
+
+---- Statistiche Detection ---- 
+Numero tatale frame: 505
+Numero tatale frame con posizione individuata: 80
+
+---- Tracking ----
+Numero tatale frame: 505
+Numero tatale frame con posizione individuata: 80
+Numero tatale frame tracked: 439
+
+ Contributo interpolazione: 0

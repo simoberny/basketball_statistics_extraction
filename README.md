@@ -4,6 +4,8 @@ Extraction of high level statistics by tracking Basketball game using MaskRCNN, 
 ### Ball Tracking
 ![gif tracking](https://github.com/simoberny/basket_tracking/blob/master/data/ball_track.gif)
 
+## TODO
+1. All phase merged with realtime statistics
 
 ## Instructions
 1. This files need to be placed in a "project folder" inside samples folder of MaskRCNN.
@@ -36,13 +38,12 @@ Extract dominant color from player bboxes masks to indentify the team
 python detection.py detect --weight=coco --video=/path/to/video
 ```
 
-#### Tracking
+#### Tracking and Interpolation
 Given the previous detection output, it tries to track them using CSRT.
 ```
 python tracking.py --video=/path/to/video --det=/path/to/detections.txt
 ```
 
-#### Interpolation
 Try to fill all the frame without a detection, interpolating tracking and detection infos
 ```
 python interpolation.py --video=/path/to/video --det=/path/to/tracking.txt
@@ -52,6 +53,18 @@ python interpolation.py --video=/path/to/video --det=/path/to/tracking.txt
 Extract some base statistic, ball possession and ball position in the two half of the pitch
 ```
 python stats.py --video=/path/to/video --det_ball=/path/to/ball_tracking.txt --det_player=/path/to/det.txt
+```
+
+#### Ball Detection + Tracking
+Chained and merged detection phase plus tracking
+```
+python realtime_ball.py -d --video=/path/to/video --weight=[path to your new .h5 weights]
+```
+
+#### Extract Statistics
+Chained and merged ball detection phase and player extraction
+```
+python realtime.py -d --video=/path/to/video --weight=[path to your new .h5 weights]
 ```
 
 #### Utility
