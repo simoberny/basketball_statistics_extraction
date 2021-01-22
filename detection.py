@@ -171,7 +171,7 @@ def display_instances(count, image, boxes, masks, ids, names, scores, resize):
             mask = masks[:, :, i]
             image = apply_mask(image, mask, (0,255,0))
             image = cv2.rectangle(image, (x1, y1), (x2, y2), (0,255,0), 2)
-            image = cv2.putText(image, caption, (x1, y1), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0,255,0), 2)
+            #image = cv2.putText(image, caption, (x2, y2), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
 
         if score > 0.90 and min_ball_size < area < max_ball_size:
             if label == 'basketball' or label == 'sports ball':
@@ -188,8 +188,10 @@ def display_instances(count, image, boxes, masks, ids, names, scores, resize):
         mask = masks[:, :, best_index]
         image = apply_mask(image, mask, (255,0,0))
         image = cv2.rectangle(image, (x1, y1), (x2, y2), (255, 0,0), 10)
-        image = cv2.putText(image, caption, (x1, y1), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255,0,0), 2)
 
+        (t_width, t_height), baseline = cv2.getTextSize(caption, cv2.FONT_HERSHEY_SIMPLEX, 0.90, 2)
+
+        image = cv2.putText(image, caption, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.90, (255, 0, 0), 2)
         f.write('{},-1,{},{},{},{},{},-1,-1,-1\n'.format(count, x1*resize, y1*resize, (x2 - x1)*resize, (y2 - y1)*resize, best_score))
 
     f.close()
@@ -339,7 +341,7 @@ if __name__ == '__main__':
     parser.add_argument('--video', required=False,
                         metavar="path or URL to video",
                         help='Video to apply the color splash effect on')
-    parser.add_argument('-d', '--display', required=False)
+    parser.add_argument('-d', '--display', required=False, action='store_true')
     args = parser.parse_args()
 
     print("Weights: ", args.weights)
@@ -406,7 +408,7 @@ if __name__ == '__main__':
     # Train or evaluate
     if args.command == "detect":
         if args.video:
-            video_segmentation(model, class_names, video_path=args.video, display=(args.display!=None), resize=1)
+            video_segmentation(model, class_names, video_path=args.video, display=args.display, resize=1)
         else: 
             image_segmentation(model, class_names, args.image)
     elif args.command == "splash":

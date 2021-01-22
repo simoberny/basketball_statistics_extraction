@@ -85,7 +85,11 @@ def draw_team(image, clusters, counts):
     global team_2
     global arbitro
 
-    image = cv2.rectangle(image, (50,50), (600, 320), (150, 50, 50), 5)
+    box_size = (550, 270)
+    pad = 30
+
+    (H, W) = image.shape[:2]
+    image = cv2.rectangle(image, (pad, (H - box_size[1] - pad)), (pad + box_size[0], (H - pad)), (0, 0, 0), -1)
 
     fusion = []
     for n, clu in enumerate(clusters):
@@ -113,20 +117,22 @@ def draw_team(image, clusters, counts):
         elif diff_2 < diff_0 and diff_2 < diff_1:
             arbitro[3] = el[3]
 
+    color_size = 60
+
     #Arbitro 
     color = tuple([int(arbitro[0]), int(arbitro[1]), int(arbitro[2])])
-    image = cv2.rectangle(image, (80,80), (140, 140), color, -1)
-    image = cv2.putText(image, "Arbitri ({})".format(arbitro[3]), (180, 120), cv2.FONT_HERSHEY_COMPLEX, 1, (200,200,200), 2)
+    image = cv2.rectangle(image, (pad + 30, (H - box_size[1])), (140, (H - box_size[1] + color_size)), color, -1)
+    image = cv2.putText(image, "Arbitri ({})".format(arbitro[3]), (180, (H - box_size[1] + color_size - 20)), cv2.FONT_HERSHEY_COMPLEX, 1, (200,200,200), 2)
 
     #Team 1
     color = tuple([int(team_1[0]), int(team_1[1]), int(team_1[2])])
-    image = cv2.rectangle(image, (80,80 + (80 * 1)), (140, 140 + (80 * 1)), color, -1)
-    image = cv2.putText(image, "Team {} ({} player)".format(1, team_1[3]), (180, 120 + (80 * 1)), cv2.FONT_HERSHEY_COMPLEX, 1, (200,200,200), 2)
+    image = cv2.rectangle(image, (pad + 30, (H - box_size[1]) + (80 * 1)), (140, (H - box_size[1] + color_size) + (80 * 1)), color, -1)
+    image = cv2.putText(image, "Team {} ({} player)".format(1, team_1[3]), (180, (H - box_size[1] + color_size - 20) + (80 * 1)), cv2.FONT_HERSHEY_COMPLEX, 1, (200,200,200), 2)
             
     #Team 2
     color = tuple([int(team_2[0]), int(team_2[1]), int(team_2[2])])
-    image = cv2.rectangle(image, (80,80 + (80 * 2)), (140, 140 + (80 * 2)), color, -1)
-    image = cv2.putText(image, "Team {} ({} player)".format(2, team_2[3]), (180, 120 + (80 * 2)), cv2.FONT_HERSHEY_COMPLEX, 1, (200,200,200), 2)
+    image = cv2.rectangle(image, (pad + 30, (H - box_size[1]) + (80 * 2)), (140, (H - box_size[1] + color_size) + (80 * 2)), color, -1)
+    image = cv2.putText(image, "Team {} ({} player)".format(2, team_2[3]), (180, (H - box_size[1] + color_size - 20) + (80 * 2)), cv2.FONT_HERSHEY_COMPLEX, 1, (200,200,200), 2)
 
     return image
 

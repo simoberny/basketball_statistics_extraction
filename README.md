@@ -4,9 +4,6 @@ Extraction of high level statistics by tracking Basketball game using MaskRCNN, 
 ### Ball Tracking
 ![gif tracking](https://github.com/simoberny/basket_tracking/blob/master/data/ball_track.gif)
 
-## TODO
-1. All phase merged with realtime statistics
-
 ## Instructions
 1. This files need to be placed in a "project folder" inside samples folder of MaskRCNN.
    -  Something like: *MASKRCNN FOLDER/samples/{custom}/files*
@@ -17,7 +14,7 @@ Extraction of high level statistics by tracking Basketball game using MaskRCNN, 
 All the script read and save in MOT challenge format
 
 ```
-frame_id, bbox_id, x_pos, y_pos, width, height, score, other_param (default -1), other_param (default -1), other_param (default -1)
+frame_id, bbox_id, x_pos, y_pos, width, height, score, x, y, z
 ```
 
 #### Training
@@ -55,14 +52,8 @@ Extract some base statistic, ball possession and ball position in the two half o
 python stats.py --video=/path/to/video --det_ball=/path/to/ball_tracking.txt --det_player=/path/to/det.txt
 ```
 
-#### Ball Detection + Tracking
-Chained and merged detection phase plus tracking
-```
-python realtime_ball.py -d --video=/path/to/video --weight=[path to your new .h5 weights]
-```
-
-#### Ball Detection + Tracking and Player Extration all-in-one (no stat for now)
-Chained and merged ball detection phase and player extraction
+#### Ball Detection + Tracking and Player Extration all-in-one
+Chained and merged ball detection phase, player extraction and statistics
 ```
 python realtime.py -d --video=/path/to/video --weight=[path to your new .h5 weights]
 ```
