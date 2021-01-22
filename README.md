@@ -14,7 +14,11 @@ Extraction of high level statistics by tracking Basketball game using MaskRCNN, 
 All the script read and save in MOT challenge format
 
 ```
+<<<<<<< HEAD
 frame_id, bbox_id, x_pos, y_pos, width, height, score, x, y, z
+=======
+frame_id, bbox_id, x_pos, y_pos, width, height, score, other (default -1), other (default -1), other (default -1)
+>>>>>>> 88a172e66cf558a7196deca8a07cd209cb8643be
 ```
 
 #### Training
