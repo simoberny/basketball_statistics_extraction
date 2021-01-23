@@ -34,19 +34,15 @@ class BasketConfig(Config):
     # Give the configuration a recognizable name
     NAME = "basket"
 
-    # We use a GPU with 12GB memory, which can fit two images.
-    # Adjust down if you use a smaller GPU.
     IMAGES_PER_GPU = 2
-
-    # Number of classes (including background)
     NUM_CLASSES = 1 + 1  # Background + basketball
 
-    # Number of training steps per epoch
-    STEPS_PER_EPOCH = 150
-
-    # Skip detections with < 90% confidence
+    STEPS_PER_EPOCH = 175
     DETECTION_MIN_CONFIDENCE = 0.90
     BACKBONE = 'resnet50'
+    DETECTION_NMS_THRESHOLD = 0.2
+    RPN_ANCHOR_SCALES = (16, 32, 64, 128, 256)
+    WEIGHT_DECAY = 0.005
 
 def color_splash(image, mask):
     """Apply color splash effect.
@@ -135,8 +131,8 @@ def display_instances(count, image, boxes, masks, ids, names, scores, resize):
     f = open("det/det_maskrcnn.txt", "a")
 
     #Finetuning of the ball detection to avoid outsiders
-    min_ball_size = 30
-    max_ball_size = 1500
+    min_ball_size = 10
+    max_ball_size = 1750
 
     det_ok = 0
 
@@ -165,7 +161,7 @@ def display_instances(count, image, boxes, masks, ids, names, scores, resize):
 
         area = width * height
 
-        if score > 0.75: 
+        if score > 0.70: 
             label = names[ids[i]]
             caption = '{} {:.2f}'.format(label, score) if score else label
             mask = masks[:, :, i]
@@ -173,7 +169,7 @@ def display_instances(count, image, boxes, masks, ids, names, scores, resize):
             image = cv2.rectangle(image, (x1, y1), (x2, y2), (0,255,0), 2)
             #image = cv2.putText(image, caption, (x2, y2), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
 
-        if score > 0.90 and min_ball_size < area < max_ball_size:
+        if score > 0.80 and min_ball_size < area < max_ball_size:
             if label == 'basketball' or label == 'sports ball':
                 det_ok += 1
 
@@ -187,7 +183,7 @@ def display_instances(count, image, boxes, masks, ids, names, scores, resize):
         caption = '{} {:.2f}'.format(label, score) if best_score else label
         mask = masks[:, :, best_index]
         image = apply_mask(image, mask, (255,0,0))
-        image = cv2.rectangle(image, (x1, y1), (x2, y2), (255, 0,0), 10)
+        image = cv2.rectangle(image, (x1, y1), (x2, y2), (255, 0,0), 8)
 
         (t_width, t_height), baseline = cv2.getTextSize(caption, cv2.FONT_HERSHEY_SIMPLEX, 0.90, 2)
 
@@ -243,7 +239,7 @@ def image_segmentation(model, class_names, image_path):
 
     print("Saved to ", file_name)
 
-def video_segmentation(model, class_names, video_path, txt_path="det/det_maskrcnn.txt", resize=2, display=False):
+def video_segmentation(model, class_names, video_path, txt_path="det/det_maskrcnn.txt", resize=1, display=False):
     start = time.time()
 
     stat = open("stats/stat.txt", "a")
@@ -254,7 +250,6 @@ def video_segmentation(model, class_names, video_path, txt_path="det/det_maskrcn
     width = int(vcapture.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(vcapture.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = vcapture.get(cv2.CAP_PROP_FPS)
-
     length_input = int(vcapture.get(cv2.CAP_PROP_FRAME_COUNT))
 
     print("Totale frame: {}".format(length_input))
@@ -271,7 +266,6 @@ def video_segmentation(model, class_names, video_path, txt_path="det/det_maskrcn
 
     with tqdm(total=length_input, file=sys.stdout) as pbar:
         while success:
-            #print("frame: ", count)
             # Read next image
             success, image = vcapture.read()
             if success:

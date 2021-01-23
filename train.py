@@ -6,6 +6,7 @@ import time
 from PIL import Image, ImageDraw
 import skimage
 import os
+import imgaug
 
 # Set the ROOT_DIR variable to the root directory of the Mask_RCNN git repo
 ROOT_DIR = '../../'
@@ -45,9 +46,12 @@ class CustomConfig(Config):
     NUM_CLASSES = 1 + 1  # Background + person + ball
 
     # Number of training steps per epoch
-    STEPS_PER_EPOCH = 100
-    DETECTION_MIN_CONFIDENCE = 0.8
+    STEPS_PER_EPOCH = 175
+    DETECTION_MIN_CONFIDENCE = 0.85
     BACKBONE = 'resnet50'
+    DETECTION_NMS_THRESHOLD = 0.5
+    RPN_ANCHOR_SCALES = (16, 32, 64, 128, 256)
+    WEIGHT_DECAY = 0.005
 
 class CustomDataset(utils.Dataset):
   def load_custom(self, dataset_dir, subset):
@@ -134,13 +138,38 @@ def train(model, dataset, epoch):
     dataset_val.load_custom(dataset, "val")
     dataset_val.prepare()
 
-    print("Training network heads")
+    augmentation = imgaug.augmenters.Sometimes(0.5, [
+        imgaug.augmenters.Fliplr(0.5),
+        imgaug.augmenters.GaussianBlur(sigma=(0.0, 5.0))
+    ])
+
     start_train = time.time()
+
+    print("Training network heads")
     model.train(dataset_train, dataset_val,
                 learning_rate=config.LEARNING_RATE,
+                epochs=int(epoch/2),
+                augmentation=augmentation,
+                layers='heads')
+
+    model.train(dataset_train, dataset_val,
+                learning_rate=config.LEARNING_RATE/10,
                 epochs=epoch,
                 layers='heads')
+
+    print("Training network 4+")
+    # Fine tune layers from 4
+    '''model.train(dataset_train, dataset_val,
+                learning_rate=config.LEARNING_RATE,
+                epochs=epoch,
+                layers='4+')
     end_train = time.time()
+    
+    model.train(dataset_train, dataset_val,
+                learning_rate=config.LEARNING_RATE/10,
+                epochs=int(epoch*1.2),
+                layers='all')
+    end_train = time.time()'''
 
     minutes = round((end_train - start_train) / 60, 2)
     print(f'Training took {minutes} minutes')

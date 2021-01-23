@@ -96,7 +96,22 @@ def opencv_tracking(video_path, detection_path, resize=2, txt_path="det/det_trac
                 det_frame+=1
 
             #If no bbox initialized
-            if initBB is None or frame_id % 1 == 0:
+            if initBB is None or (prev_box[0] == 0 and prev_box[1] == 0):
+                best_score = 0
+
+                for i, bbox in enumerate(boxes):
+                    coor = np.array(bbox[:4], dtype=np.int32)
+                    initBB = (coor[0] - bbox_offset, coor[1] - bbox_offset, coor[2] + 2*bbox_offset, coor[3] + 2*bbox_offset)
+
+                    cv2.putText(frame, "Tracking perso. Nuovo punto: {}{}".format(initBB[0], initBB[1]), (16, 50),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2)
+
+                    if scores[i] > best_score: 
+                        tracker = cv2.TrackerCSRT_create()
+                        tracker.init(frame, initBB)
+                        fps = FPS().start()
+                        best_score = scores[i]
+            else:
                 min_distance = 99999
 
                 for i, bbox in enumerate(boxes):
@@ -104,18 +119,11 @@ def opencv_tracking(video_path, detection_path, resize=2, txt_path="det/det_trac
 
                     # bbox initialized with an offset to better discriminate using dome background information
                     initBB = (coor[0] - bbox_offset, coor[1] - bbox_offset, coor[2] + 2*bbox_offset, coor[3] + 2*bbox_offset)
-
                     #Difference between new detections and last tracking by CSRT
                     eucl = math.sqrt((coor[0] - prev_box[0]) ** 2 + (coor[1] - prev_box[1]) ** 2)             
 
                     #Check if bbox is close enough in about N frames
-                    if (prev_box[0] == 0 and prev_box[1] == 0) or initBB is None:
-                        if scores[i] > best_score: 
-                            tracker = cv2.TrackerCSRT_create()
-                            tracker.init(frame, initBB)
-                            fps = FPS().start()
-                            best_score = scores[i]
-                    elif (frame_diff > 8 or eucl < 150): 
+                    if (frame_diff > 8 or eucl < 200): 
                         #Get the closest bbox
                         if eucl < min_distance: 
                             min_distance = eucl
@@ -123,13 +131,11 @@ def opencv_tracking(video_path, detection_path, resize=2, txt_path="det/det_trac
                             tracker = cv2.TrackerCSRT_create()
                             #tracker.read(fp.getFirstTopLevelNode())
                             tracker.init(frame, initBB)
-                        
                             fps = FPS().start()
 
                             frame_diff = 0        
                     else:
                         frame_diff += 1
-
                         cv2.putText(frame, "Frame without valid det: {}".format(frame_diff), (16, 50),
                             cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2)
                             

@@ -188,3 +188,74 @@ Numero tatale frame tracked: 893
 ---- Statistiche Detection ---- 
 Numero tatale frame: 919
 Numero tatale frame con posizione individuata: 400
+
+---- Statistiche Detection ---- 
+Numero tatale frame: 919
+Numero tatale frame con posizione individuata: 501
+
+---- Statistiche Detection ---- 
+Numero tatale frame: 919
+Numero tatale frame con posizione individuata: 413
+
+---- Statistiche Detection ---- 
+Numero tatale frame: 919
+Numero tatale frame con posizione individuata: 55
+
+---- Statistiche Detection ---- 
+Numero tatale frame: 919
+Numero tatale frame con posizione individuata: 64
+
+---- Tracking ----
+Numero tatale frame: 919
+Numero tatale frame con posizione individuata: 64
+Numero tatale frame tracked: 814
+
+---- Statistiche Detection ---- 
+Numero tatale frame: 919
+Numero tatale frame con posizione individuata: 425
+
+---- Tracking ----
+Numero tatale frame: 919
+Numero tatale frame con posizione individuata: 425
+Numero tatale frame tracked: 701
+
+---- Tracking ----
+Numero tatale frame: 919
+Numero tatale frame con posizione individuata: 425
+Numero tatale frame tracked: 701
+
+---- Tracking ----
+Numero tatale frame: 919
+Numero tatale frame con posizione individuata: 425
+Numero tatale frame tracked: 893
+
+---- Tracking ----
+Numero tatale frame: 919
+Numero tatale frame con posizione individuata: 425
+Numero tatale frame tracked: 809
+
+---- Statistiche Detection ---- 
+Numero tatale frame: 919
+Numero tatale frame con posizione individuata: 425
+
+---- Tracking ----
+Numero tatale frame: 919
+Numero tatale frame con posizione individuata: 425
+Numero tatale frame tracked: 809
+
+---- Statistiche Detection ---- 
+Numero tatale frame: 919
+Numero tatale frame con posizione individuata: 221
+
+---- Statistiche Detection ---- 
+Numero tatale frame: 919
+Numero tatale frame con posizione individuata: 647
+
+---- Statistiche Detection ---- 
+Numero tatale frame: 919
+Numero tatale frame con posizione individuata: 605
+
+---- Tracking ----
+Numero tatale frame: 919
+Numero tatale frame con posizione individuata: 605
+Numero tatale frame tracked: 913
