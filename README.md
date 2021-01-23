@@ -10,13 +10,13 @@ Extraction of high level statistics by tracking Basketball game using MaskRCNN, 
 2. Follow instructions on Maskrcnn repository to install dependencies and maskrcnn itself
 3. Run the script as indicated below!
 
-## Files explanation
+### Detection's save file format
 All the script read and save in MOT challenge format
-
 ```
 frame_id, bbox_id, x_pos, y_pos, width, height, score, x, y, z
 ```
 
+## Files explanation
 #### Training
 Dataset folder should contain train and val folder. Follow MaskRCNN rules. 
 ```
