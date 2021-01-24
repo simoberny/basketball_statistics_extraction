@@ -2,10 +2,10 @@
 Extraction of high level statistics by tracking Basketball game using MaskRCNN, SORT, CSRT and interpolation
 
 ### Game tracking
-<!--![gif tracking](https://github.com/simoberny/basket_tracking/blob/master/data/ball_track.gif)-->
-<figure class="video_container">
-  <iframe src="https://youtu.be/R6vTXeZziyA" frameborder="0" allowfullscreen="true"> </iframe>
-</figure>
+![gif tracking](https://github.com/simoberny/basket_tracking/blob/master/data/game_track.gif)
+
+[Check out full video!](https://youtu.be/R6vTXeZziyA)
+
 
 ## Instructions
 1. This files need to be placed in a "project folder" inside samples folder of MaskRCNN.
