@@ -47,9 +47,9 @@ class CustomConfig(Config):
 
     # Number of training steps per epoch
     STEPS_PER_EPOCH = 175
-    DETECTION_MIN_CONFIDENCE = 0.85
+    DETECTION_MIN_CONFIDENCE = 0.90
     BACKBONE = 'resnet50'
-    DETECTION_NMS_THRESHOLD = 0.5
+    DETECTION_NMS_THRESHOLD = 0.3
     RPN_ANCHOR_SCALES = (16, 32, 64, 128, 256)
     WEIGHT_DECAY = 0.005
 
@@ -152,14 +152,14 @@ def train(model, dataset, epoch):
                 augmentation=augmentation,
                 layers='heads')
 
-    model.train(dataset_train, dataset_val,
+    '''model.train(dataset_train, dataset_val,
                 learning_rate=config.LEARNING_RATE/10,
                 epochs=epoch,
-                layers='heads')
+                layers='heads')'''
 
     print("Training network 4+")
     # Fine tune layers from 4
-    '''model.train(dataset_train, dataset_val,
+    model.train(dataset_train, dataset_val,
                 learning_rate=config.LEARNING_RATE,
                 epochs=epoch,
                 layers='4+')
@@ -169,7 +169,7 @@ def train(model, dataset, epoch):
                 learning_rate=config.LEARNING_RATE/10,
                 epochs=int(epoch*1.2),
                 layers='all')
-    end_train = time.time()'''
+    end_train = time.time()
 
     minutes = round((end_train - start_train) / 60, 2)
     print(f'Training took {minutes} minutes')

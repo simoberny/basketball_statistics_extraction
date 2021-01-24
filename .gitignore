@@ -3,7 +3,7 @@ output/
 dataset/train/
 dataset/val/
 det/
-
+stats/stat.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -60,9 +60,12 @@ class BasketConfig(Config):
     NAME = "basket"
     IMAGES_PER_GPU = 2
     NUM_CLASSES = 1 + 1  # Background + basketball
-    STEPS_PER_EPOCH = 150
-    DETECTION_MIN_CONFIDENCE = 0.90
+    STEPS_PER_EPOCH = 175
+    DETECTION_MIN_CONFIDENCE = 0.94
     BACKBONE = 'resnet50'
+    DETECTION_NMS_THRESHOLD = 0.2
+    RPN_ANCHOR_SCALES = (16, 32, 64, 128, 256)
+    WEIGHT_DECAY = 0.005
 
 # define random colors
 def random_colors(N):
@@ -131,7 +134,7 @@ def player_instances(count, image, boxes, masks, ids, names, scores, resize):
             players_boxes.append([x1, y1, (x2 - x1), (y2 - y1)])
             players_id.append(team)
 
-            f.write('{},-1,{},{},{},{},{},-1,-1,-1 {}\n'.format(count, x1, y1, (x2 - x1), (y2 - y1), score, team))
+            f.write('{},-1,{},{},{},{},{},-1,-1,-1,{} \n'.format(count, x1, y1, (x2 - x1), (y2 - y1), score, team))
 
     #Group to 3 cluster all the color found in the frame's bboxes
     clusters, counts = parse_colors(color_list, 3)
@@ -177,7 +180,7 @@ def ball_instances(count, image, boxes, masks, ids, names, scores, resize):
 
         area = width * height
 
-        if score > 0.70: 
+        if score > 0.90: 
             label = names[ids[i]]
             caption = '{} {:.2f}'.format(label, score) if score else label
             mask = masks[:, :, i]
@@ -185,7 +188,7 @@ def ball_instances(count, image, boxes, masks, ids, names, scores, resize):
             #image = cv2.rectangle(image, (x1, y1), (x2, y2), (0,255,0), 1)
             #image = cv2.putText(image, caption, (x1, y1), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0,255,0), 2)
 
-        if score > 0.85 and min_ball_size < area < max_ball_size:
+        if score > 0.93 and min_ball_size < area < max_ball_size:
             if score > best_score: 
                 best_score = score
                 best_index = i
@@ -207,10 +210,8 @@ def ball_instances(count, image, boxes, masks, ids, names, scores, resize):
 
     return image, dict_result
 
-def general_detection(image, model):
-    return model.detect([image], verbose=0)[0]
-
-def video_detection(stat, ball_model, player_model, video_path, txt_path="det/det_track_maskrcnn.txt", resize=2, display=False):
+def video_detection(stat, ball_model, player_model, video_path, txt_path="det/det_track_maskrcnn.txt", resize=1, display=False):
+    f = open("det/det_maskrcnn.txt", "w").close()
     f = open(txt_path, "w")
 
     # Video capture
@@ -245,7 +246,7 @@ def video_detection(stat, ball_model, player_model, video_path, txt_path="det/de
     _, first = vcapture.read()
 
     # Draw central line
-    stat.initialize(first)
+    stat.initialize(first, resize)
 
     with tqdm(total=length_input, file=sys.stdout) as pbar:
         while success:
@@ -253,6 +254,7 @@ def video_detection(stat, ball_model, player_model, video_path, txt_path="det/de
             if success:
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 c_image = image.copy()
+                ball_image = image.copy()
                 track_image = image.copy()
 
                 #Mask for LATERAL VIEW GAME ONLY!
@@ -269,7 +271,7 @@ def video_detection(stat, ball_model, player_model, video_path, txt_path="det/de
                 image = cv2.resize(image, (int(width/resize), int(height/resize)))
                 
                 # Apply detections model
-                ball_ret = ball_model.detect([image], verbose=0)[0]
+                ball_ret = ball_model.detect([ball_image], verbose=0)[0]
                 player_ret = player_model.detect([masked_pitch], verbose=0)[0]
 
                 # Draw and save bbox result
@@ -332,14 +334,16 @@ def video_detection(stat, ball_model, player_model, video_path, txt_path="det/de
                 cv2.putText(stat_image, "ball", (p1[0], p1[1] - 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 153, 255), 3)
 
                 to_save = cv2.resize(stat_image, (int(width/resize), int(height/resize)))
+                
+                # Add image to video writer
+                vwriter.write(to_save)
 
                 if display:
-                    cv2.imshow('YOLO Object Detection', to_save)
+                    to_show = cv2.resize(stat_image, (int(width/2), int(height/2)))
+                    cv2.imshow('YOLO Object Detection', to_show)
                     if cv2.waitKey(1) & 0xFF == ord('q'):
                         break
     
-                # Add image to video writer
-                vwriter.write(to_save)
                 count += 1
 
             #Fancy print

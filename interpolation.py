@@ -100,3 +100,4 @@ if __name__ == '__main__':
 
     dict_finale = interpolation(args.det)
     save_to_video(dict_finale, args.video, 'output/det_track_inter.mp4')
+    save_mot(dict_finale, "det/det_final_maskrcnn.txt")

@@ -15,6 +15,7 @@ sys.path.append(ROOT_DIR)  # To find local version of the library
 class Statistics:
     def __init__(self):
         self.line_points = []
+        self.resize = 1
 
         #variables for statistics 1:
         self.possesso_palla = np.array([0, 0, 0])
@@ -36,7 +37,9 @@ class Statistics:
         #per statistica 5:
         self.pressione = np.array([0, 0])
         
-    def initialize(self, img):
+    def initialize(self, img, resize):
+        self.resize = resize
+
         cv2.namedWindow("selectpoint")
         cv2.setMouseCallback("selectpoint", self.draw_line) # param = None
 
@@ -59,7 +62,7 @@ class Statistics:
             #center = (100,100)
             #radius = calc_distance((x, y), center)     
             cv2.circle(i, (x, y), 2, (255, 0, 0), 2)
-            self.line_points.append((x*3, y*3))
+            self.line_points.append((int((x*3)/self.resize), int((y*3)/self.resize)))
 
     def generate_file(self,f, frame_id):
         f.write("-----------------possesso palla:------------------- \n \n")
@@ -157,24 +160,28 @@ class Statistics:
             else:   #if the det+tracker doesn't find a ball use the last one position
                 boxes_ball = self.last_valid_ball
                 
-        coor = boxes_ball[0]
-        line_points_arr = np.asarray(self.line_points)
-        p1 =[coor[0],coor[1]]
+            coor = boxes_ball[0]
+            line_points_arr = np.asarray(self.line_points)
+            p1 =[coor[0],coor[1]]
 
-        distance_ball_center = (np.cross(line_points_arr[0]-p1, p1-line_points_arr[1])) / np.linalg.norm(line_points_arr[0]-p1)
-        self.history_distance_ball_center.append(distance_ball_center)
+            # Return -1 left, 0 on line, +1 right
+            ball_pos = ball_position(self.line_points[0], self.line_points[1], p1)
 
-        if(distance_ball_center<0):
-            self.ball_cumulative_position[0] = self.ball_cumulative_position[0] + 1
-            self.ballDX = False
-            self.ballSX = True
-            image = cv2.putText(image, "Posizione palla: SX", (100, 200 + (80 * 4)), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (200,200,200), 4)   
+            distance_ball_center = abs((np.cross(line_points_arr[0]-p1, p1-line_points_arr[1])) / np.linalg.norm(line_points_arr[0]-p1))
+            self.history_distance_ball_center.append(distance_ball_center * ball_pos)
+
+            self.ballDX = (ball_pos == 1)
+            self.ballSX = (ball_pos == -1)
+
+            if ball_pos == 1:
+                self.ball_cumulative_position[0] = self.ball_cumulative_position[0] + 1
+                image = cv2.putText(image, "Posizione palla: DX", (100, 200 + (80 * 4)), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (200,200,200), 4)   
+            else:
+                self.ball_cumulative_position[1] = self.ball_cumulative_position[1] +1
+                image = cv2.putText(image, "Posizione palla: SX", (100, 200 + (80 * 4)), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (200,200,200), 4)
         else:
-            self.ball_cumulative_position[1] = self.ball_cumulative_position[1] +1
-            self.ballDX = True
-            self.ballSX = False  
-            image = cv2.putText(image, "Posizione palla: DX", (100, 200 + (80 * 4)), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (200,200,200), 4)
-        
+            image = cv2.putText(image, "Posizione palla: -", (100, 200 + (80 * 4)), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (200,200,200), 4)  
+
         return image
     
     # Generazione statistica 4
@@ -210,7 +217,6 @@ class Statistics:
                     
                     frame_crowded = 0
                     for i in range(len(last_50_dist_team1)):
-                            
                         #verifica se in una posizione passata intorno alla palla c'erano alemeno 6 giocatori                   
                         if((last_50_dist_team1[i] + last_50_dist_team2[i]) / 2) < 300:
                             frame_crowded += 1                        
@@ -220,6 +226,8 @@ class Statistics:
                         #print("number of frame crowded befor a single player action:  "+str(frame_crowded))
                         #print(np.gradient(history_distance_ball_center[-80:]))
                         direction = np.mean(np.gradient(self.history_distance_ball_center[-80:]))
+
+                        #print("Gradient: {}".format(direction))
                         
                         (H, W) = image.shape[:2]
                         
@@ -227,12 +235,13 @@ class Statistics:
                         #image = cv2.rectangle(image, (int((W/2)-200), 50), (int((W/2)+200), 300), (150, 50, 50), 5) 
                          
                         cv2.putText(image,"Direction of Attack: ", (int((W/2)-150), 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (200,200,200), 2)
+
                         
-                        if direction>0:
+                        if direction > 0:
                            # print("attacco a DX")
                             cv2.arrowedLine(image, (int((W/2)), 200), (int((W/2))+150, 200), (200,200,200), 8, tipLength=0.5)
                              
-                        if direction<0:
+                        if direction < 0:
                             #print("attacco a SX")
                             cv2.arrowedLine(image, (int((W/2)), 200), (int((W/2)-150), 200), (200,200,200), 8,tipLength=0.5)         
         return image
@@ -254,12 +263,10 @@ class Statistics:
             if self.ballSX :
                 #print("affollamento a SX")
                 self.pressione[0] += 1
-                cv2.arrowedLine(image, (int((W/2)), 200), (int((W/2))+150, 200), (200,200,200), 8, tipLength=0.5)
                 
             if self.ballDX:
                 #print("affollamento dx")
                 self.pressione[1] += 1
-                cv2.arrowedLine(image, (int((W/2)), 200), (int((W/2)-150), 200), (200,200,200), 8,tipLength=0.5)
                 
         if np.sum(self.pressione) > 0:
             image = cv2.putText(image, "   Team 1: {}%".format(str(int(self.pressione[1] / np.sum(self.pressione) * 100))), (100, 200 + (80 * 6)), cv2.FONT_HERSHEY_SIMPLEX, 1, (200,200,200), 2)
@@ -268,7 +275,11 @@ class Statistics:
         return image
 
     def run_stats(self,image,boxes_ball,boxes_team,team_numbers,fps,frame_id):
+        #Draw stats windows
         image = cv2.rectangle(image, (50,50), (700, 100 + (80 * 9)), (0,0,0), -1)  
+
+        #Draw pitch middle line
+        image = cv2.line(image, self.line_points[0], self.line_points[1], (20,20,20), thickness=2)
 
         # Chiamata statistica 1            
         image = self.stat1(image, boxes_ball, boxes_team, team_numbers, fps, frame_id)
@@ -301,10 +312,10 @@ def run_all(video_path, ball_tracking_path, team_detection_path, out_txt_file):
         print ("Could not open video")
         sys.exit()
  
-    stat = Statistics ()
+    stat = Statistics()
     
     ret, img = video.read()
-    stat.initialize(img)
+    stat.initialize(img, 1)
     
     ret = True   
     frame_id = 1

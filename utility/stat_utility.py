@@ -97,3 +97,9 @@ def circle_player(image, box1, radius):
     p2_box1 = (int(box1[0] + box1[2]), int(box1[1] + box1[3]))
     center_box1 = (int((p1_box1[0]+p2_box1[0])/2),int((p1_box1[1]+p2_box1[1])/2))
     cv2.circle(image, tuple(center_box1), radius, (0, 0, 200), 2)
+
+def ball_position(line_a, line_b, point):
+    if line_a[1] < line_b[1]:
+        line_a, line_b = line_b, line_a
+    return np.sign((line_b[0] - line_a[0])*(point[1] - line_a[1]) - (line_b[1] - line_a[1])*(point[0]- line_a[0]))
+    

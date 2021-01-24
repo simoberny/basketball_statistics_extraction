@@ -26,7 +26,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 sys.path.append(ROOT_DIR)  # To find local version of the library
 
 #Tacking using OpenCV implementation of CSRT 
-def opencv_tracking(video_path, detection_path, resize=2, txt_path="det/det_track_maskrcnn.txt"):
+def opencv_tracking(video_path, detection_path, resize=1, txt_path="det/det_track_maskrcnn.txt"):
     start = time.time()
 
     #BBOX file path
@@ -37,9 +37,12 @@ def opencv_tracking(video_path, detection_path, resize=2, txt_path="det/det_trac
 
     #Convert file detection to dictionary
     gt_dict = get_dict(detection_path)
-    
+
+    params = cv2.TrackerCSRT_Params()
+    params.psr_threshold = 0.04
+
     #Initialize tracker
-    tracker = cv2.TrackerCSRT_create()
+    tracker = cv2.TrackerCSRT_create(params)
 
     # Input video
     video = cv2.VideoCapture(video_path)
@@ -54,10 +57,6 @@ def opencv_tracking(video_path, detection_path, resize=2, txt_path="det/det_trac
     if not video.isOpened():
         print ("Could not open video")
         sys.exit()
-
-    file_path = 'tracker_params.yaml'
-    fp = cv2.FileStorage(file_path, cv2.FILE_STORAGE_READ)  # Read file
-      # Do not use: tracker.read(fp.root())
 
     frame_id = 0
     ret = True
@@ -107,7 +106,7 @@ def opencv_tracking(video_path, detection_path, resize=2, txt_path="det/det_trac
                         cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2)
 
                     if scores[i] > best_score: 
-                        tracker = cv2.TrackerCSRT_create()
+                        tracker = cv2.TrackerCSRT_create(params)
                         tracker.init(frame, initBB)
                         fps = FPS().start()
                         best_score = scores[i]
@@ -128,7 +127,7 @@ def opencv_tracking(video_path, detection_path, resize=2, txt_path="det/det_trac
                         if eucl < min_distance: 
                             min_distance = eucl
                             
-                            tracker = cv2.TrackerCSRT_create()
+                            tracker = cv2.TrackerCSRT_create(params)
                             #tracker.read(fp.getFirstTopLevelNode())
                             tracker.init(frame, initBB)
                             fps = FPS().start()

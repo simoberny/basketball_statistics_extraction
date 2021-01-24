@@ -161,7 +161,7 @@ def display_instances(count, image, boxes, masks, ids, names, scores, resize):
 
         area = width * height
 
-        if score > 0.70: 
+        if score > 0.85: 
             label = names[ids[i]]
             caption = '{} {:.2f}'.format(label, score) if score else label
             mask = masks[:, :, i]
@@ -169,7 +169,7 @@ def display_instances(count, image, boxes, masks, ids, names, scores, resize):
             image = cv2.rectangle(image, (x1, y1), (x2, y2), (0,255,0), 2)
             #image = cv2.putText(image, caption, (x2, y2), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
 
-        if score > 0.80 and min_ball_size < area < max_ball_size:
+        if score > 0.92 and min_ball_size < area < max_ball_size:
             if label == 'basketball' or label == 'sports ball':
                 det_ok += 1
 
