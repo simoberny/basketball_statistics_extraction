@@ -6,6 +6,32 @@ Extraction of high level statistics by tracking Basketball game using MaskRCNN, 
 
 [Check out full video!](https://youtu.be/R6vTXeZziyA)
 
+## Ball Network training fine-tunes
+- Data Agugmentation using imgaug ([Github repo](https://github.com/aleju/imgaug))
+- Reduced **RPN_ANCHOR_SCALES** for better recognition of small objects
+- Increased **WEIGHTS_DECAY**
+- Custom training steps: 
+
+```
+   # Training network Heads
+   model.train(dataset_train, dataset_val,
+               learning_rate=config.LEARNING_RATE,
+               epochs=int(epochs/2),
+               augmentation=augmentation,
+               layers='heads')
+
+   # Training network 4+ layers
+   model.train(dataset_train, dataset_val,
+               learning_rate=config.LEARNING_RATE,
+               epochs=epochs,
+               layers='4+')
+    
+   # Training all network layers
+   model.train(dataset_train, dataset_val,
+               learning_rate=config.LEARNING_RATE/10,
+               epochs=int(epochs*1.2),
+               layers='all')
+```
 
 ## Instructions
 1. This files need to be placed in a "project folder" inside samples folder of MaskRCNN.
@@ -59,6 +85,12 @@ python stats.py --video=/path/to/video --det_ball=/path/to/ball_tracking.txt --d
 Chained and merged ball detection phase, player extraction and statistics
 ```
 python realtime.py -d --video=/path/to/video --weight=[path to your new .h5 weights]
+```
+
+#### Network evaluation
+Calculate mAP and FPS 
+```
+python evaluate.py --dataset=/path/to/dataset/ --weights=/path/to/new_weights
 ```
 
 #### Utility
