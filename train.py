@@ -47,7 +47,7 @@ class CustomConfig(Config):
 
     # Number of training steps per epoch
     STEPS_PER_EPOCH = 175
-    DETECTION_MIN_CONFIDENCE = 0.90
+    DETECTION_MIN_CONFIDENCE = 0.85
     BACKBONE = 'resnet50'
     DETECTION_NMS_THRESHOLD = 0.3
     RPN_ANCHOR_SCALES = (16, 32, 64, 128, 256)

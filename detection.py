@@ -276,7 +276,7 @@ def video_segmentation(model, class_names, video_path, txt_path="det/det_maskrcn
                 image = cv2.resize(image, (int(width/resize), int(height/resize)))
 
                 # Detect objects
-                r = model.detect([image], verbose=0)[0]
+                r = model.detect([image], verbose=1)[0]
 
                 frame, st = display_instances(count, image, r["rois"], r["masks"], r["class_ids"], class_names, r["scores"], resize)
 
