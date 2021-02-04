@@ -38,6 +38,16 @@ class Statistics:
         self.pressione = np.array([0, 0])
         
     def initialize(self, img, resize):
+        if 'COLAB_GPU' in os.environ:
+            print('Running on CoLab')
+
+            self.line_points = [(1932, 1113), (1806, 1767)]
+
+            return
+        else:
+            print('Not running on CoLab')
+        
+
         self.resize = resize
 
         cv2.namedWindow("selectpoint")
@@ -55,7 +65,7 @@ class Statistics:
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
         cv2.destroyAllWindows()
-        #print(self.line_points)
+        print(self.line_points)
         
     def draw_line(self, event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
@@ -101,49 +111,52 @@ class Statistics:
             for box in boxes_team:
                 ball_players_distance.append(distance_boxes(box,boxes_ball[0]))
             
-            player_index = np.argmin(ball_players_distance)
+            player_index = -1
 
-            txt = "-"
+            if ball_players_distance != []:
+                player_index = np.argmin(ball_players_distance)
 
-            if(ball_players_distance[player_index] < 150):
-                
-                team_number = int(team_numbers[player_index])
-                
-                self.storia_possesso_palla.append(team_number)
-                
-                #the current team number is defined as the most recurrent number in the last 5 frame
-                self.filtered_team_number = int(np.median(self.storia_possesso_palla[-10:]))
-                
-                self.possesso_palla[self.filtered_team_number] = self.possesso_palla[self.filtered_team_number] + 1
-                
-                image = draw_rect(image, boxes_team[player_index], (0,0,255))
-                
-                circle_player(image, boxes_team[player_index], 150)
-                
-                if (self.filtered_team_number) == 0:
-                    txt = "Arbitro"
-                if (self.filtered_team_number) == 1:
-                    txt = "Team 1"
-                if (self.filtered_team_number) == 2:
-                    txt = "Team 2"
+                txt = "-"
 
-                cv2.putText(
-                    image, #numpy array on which text is written
-                    txt, #text
-                    (int(boxes_team[player_index][0]), int(boxes_team[player_index][1] - 60)), #position at which writing has to start
-                    cv2.FONT_HERSHEY_SIMPLEX, #font family
-                    1, #font size
-                    (40, 40, 40, 255), #font color
-                    3) #font stroke       
+                if(ball_players_distance[player_index] < 150):
+                    
+                    team_number = int(team_numbers[player_index])
+                    
+                    self.storia_possesso_palla.append(team_number)
+                    
+                    #the current team number is defined as the most recurrent number in the last 5 frame
+                    self.filtered_team_number = int(np.median(self.storia_possesso_palla[-10:]))
+                    
+                    self.possesso_palla[self.filtered_team_number] = self.possesso_palla[self.filtered_team_number] + 1
+                    
+                    image = draw_rect(image, boxes_team[player_index], (0,0,255))
+                    
+                    circle_player(image, boxes_team[player_index], 150)
+                    
+                    if (self.filtered_team_number) == 0:
+                        txt = "Referee"
+                    if (self.filtered_team_number) == 1:
+                        txt = "Team 1"
+                    if (self.filtered_team_number) == 2:
+                        txt = "Team 2"
+
+                    cv2.putText(
+                        image, #numpy array on which text is written
+                        txt, #text
+                        (int(boxes_team[player_index][0]), int(boxes_team[player_index][1] - 60)), #position at which writing has to start
+                        cv2.FONT_HERSHEY_SIMPLEX, #font family
+                        1, #font size
+                        (40, 40, 40, 255), #font color
+                        3) #font stroke       
                 
-            image = cv2.putText(image, "In possesso: {}".format(txt), (100, 120), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (200,200,255), 4)
+            image = cv2.putText(image, "In Possession: {}".format(txt), (100, 120), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (200,200,255), 4)
 
             #print possesso palla delle squadre:  
-            image = cv2.putText(image, "Possesso palla (sec/tot)", (100, 200), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (200,200,200), 4)
+            image = cv2.putText(image, "Ball possession (sec/tot)", (100, 200), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (200,200,200), 4)
 
             elapsed = round(frame_id / fps, 1)
             #arbitri
-            image = cv2.putText(image, "   Arbitri: {}/{} s".format(round(self.possesso_palla[0] / fps, 1), elapsed), (100, 200+(80 * 1)), cv2.FONT_HERSHEY_SIMPLEX, 1, (200,200,200), 2)
+            image = cv2.putText(image, "   Referee: {}/{} s".format(round(self.possesso_palla[0] / fps, 1), elapsed), (100, 200+(80 * 1)), cv2.FONT_HERSHEY_SIMPLEX, 1, (200,200,200), 2)
             #Team 1                
             image = cv2.putText(image, "   Team 1: {}/{} s".format(round(self.possesso_palla[1] / fps, 1), elapsed), (100, 200 + (80 * 2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (200,200,200), 2)                        
             #Team 2               
@@ -175,12 +188,12 @@ class Statistics:
 
             if ball_pos == 1:
                 self.ball_cumulative_position[0] = self.ball_cumulative_position[0] + 1
-                image = cv2.putText(image, "Posizione palla: DX", (100, 200 + (80 * 4)), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (200,200,200), 4)   
+                image = cv2.putText(image, "Ball position: DX", (100, 200 + (80 * 4)), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (200,200,200), 4)
             else:
                 self.ball_cumulative_position[1] = self.ball_cumulative_position[1] +1
-                image = cv2.putText(image, "Posizione palla: SX", (100, 200 + (80 * 4)), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (200,200,200), 4)
+                image = cv2.putText(image, "Ball position: SX", (100, 200 + (80 * 4)), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (200,200,200), 4)
         else:
-            image = cv2.putText(image, "Posizione palla: -", (100, 200 + (80 * 4)), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (200,200,200), 4)  
+            image = cv2.putText(image, "Ball position: -", (100, 200 + (80 * 4)), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (200,200,200), 4)  
 
         return image
     
@@ -208,7 +221,9 @@ class Statistics:
             if  len(self.history_mean_dist_team1) > distance_search:
                 #media giocatori vicini alla palla per ogni squadra negli ultimi 5 frame
                 mean_team1 = np.mean(self.history_mean_dist_team1[-number_of_value:])
-                mean_team2 = np.mean(self.history_mean_dist_team2[-number_of_value:])             
+                mean_team2 = np.mean(self.history_mean_dist_team2[-number_of_value:])     
+
+                #image = cv2.putText(image, "media: {}".format((mean_team1 + mean_team2) / 2), (100, 120), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (200,200,255), 4)        
                   
                 if (mean_team1 + mean_team2) / 2 > 400: 
                     #print("poco affollato:  mean:" +str((mean_team1+mean_team2)/2))
@@ -256,7 +271,7 @@ class Statistics:
         
         mean_team1 = np.mean(self.history_mean_dist_team1[-number_of_value:])
         mean_team2 = np.mean(self.history_mean_dist_team2[-number_of_value:])
-        image = cv2.putText(image, "Pressione avversaria", (100, 200 + (80 * 5)), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (200,200,200), 4)
+        image = cv2.putText(image, "Opponent pressure", (100, 200 + (80 * 5)), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (200,200,200), 4)
 
         if (mean_team1 + mean_team2) / 2 < 500:
            # print("affollato")
@@ -306,7 +321,7 @@ def run_all(video_path, ball_tracking_path, team_detection_path, out_txt_file):
 
     # Output video
     fourcc = cv2.VideoWriter_fourcc('m','p','4','v') #definisco formato output video mp4
-    out = cv2.VideoWriter('output-finale.mp4',fourcc, 30.0, (int(video.get(3)/2), int(video.get(4)/2)), True) #definisco proprietà output video
+    out = cv2.VideoWriter('output-finale.mp4',fourcc, 30.0, (int(video.get(3)), int(video.get(4))), True) #definisco proprietà output video
 
     if not video.isOpened():
         print ("Could not open video")
@@ -347,7 +362,7 @@ def run_all(video_path, ball_tracking_path, team_detection_path, out_txt_file):
         cv2.waitKey(1)
         
         (H, W) = image.shape[:2]
-        i = cv2.resize(image, (int(W/2), int(H/2)))
+        i = cv2.resize(image, (int(W), int(H)))
         out.write(i) 
         
         frame_id+=1

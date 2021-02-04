@@ -188,7 +188,7 @@ def ball_instances(count, image, boxes, masks, ids, names, scores, resize):
             #image = cv2.rectangle(image, (x1, y1), (x2, y2), (0,255,0), 1)
             #image = cv2.putText(image, caption, (x1, y1), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0,255,0), 2)
 
-        if score > 0.93 and min_ball_size < area < max_ball_size:
+        if score > 0.90 and min_ball_size < area < max_ball_size:
             if score > best_score: 
                 best_score = score
                 best_index = i
@@ -320,6 +320,8 @@ def video_detection(stat, ball_model, player_model, video_path, txt_path="det/de
                 frame_time = end - start
 
                 d_fps = round(count / frame_time, 2)
+
+                print("FPS: {}".format(d_fps))
 
                 frame = cv2.rectangle(frame, (width - 200, 50), (width - 50, 150), (0,0,0), -1)
                 frame = cv2.putText(frame, "{}".format(d_fps), (width - 170, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.3, (230,230,230), 2)

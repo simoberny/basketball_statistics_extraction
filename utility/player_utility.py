@@ -45,6 +45,8 @@ def get_dominant(img):
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 200, .1)
     flags = cv2.KMEANS_RANDOM_CENTERS
     _,labels,palette = cv2.kmeans(data,5,None,criteria,10,flags)
+    
+
     _, counts = np.unique(labels, return_counts=True)
 
     best_palette = []
@@ -122,7 +124,7 @@ def draw_team(image, clusters, counts):
     #Arbitro 
     color = tuple([int(arbitro[0]), int(arbitro[1]), int(arbitro[2])])
     image = cv2.rectangle(image, (pad + 30, (H - box_size[1])), (140, (H - box_size[1] + color_size)), color, -1)
-    image = cv2.putText(image, "Arbitri ({})".format(arbitro[3]), (180, (H - box_size[1] + color_size - 20)), cv2.FONT_HERSHEY_COMPLEX, 1, (200,200,200), 2)
+    image = cv2.putText(image, "Referee ({})".format(arbitro[3]), (180, (H - box_size[1] + color_size - 20)), cv2.FONT_HERSHEY_COMPLEX, 1, (200,200,200), 2)
 
     #Team 1
     color = tuple([int(team_1[0]), int(team_1[1]), int(team_1[2])])

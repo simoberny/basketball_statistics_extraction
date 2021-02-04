@@ -73,7 +73,7 @@ def detect_and_color_splash(model, image_path=None, video_path=None):
         # Read image
         image = skimage.io.imread(args.image)
         # Detect objects
-        r = model.detect([image], verbose=1)[0]
+        r = model.detect([image], verbose=0)[0]
         # Color splash
         splash = color_splash(image, r['masks'])
         # Save output
@@ -183,11 +183,11 @@ def display_instances(count, image, boxes, masks, ids, names, scores, resize):
         caption = '{} {:.2f}'.format(label, score) if best_score else label
         mask = masks[:, :, best_index]
         image = apply_mask(image, mask, (255,0,0))
-        image = cv2.rectangle(image, (x1, y1), (x2, y2), (255, 0,0), 8)
+        image = cv2.rectangle(image, (x1 - 6, y1 -6), (x2 + 12, y2 +12), (255, 0,0), 8)
 
         (t_width, t_height), baseline = cv2.getTextSize(caption, cv2.FONT_HERSHEY_SIMPLEX, 0.90, 2)
 
-        image = cv2.putText(image, caption, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.90, (255, 0, 0), 2)
+        image = cv2.putText(image, caption, (x1, y1 - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.90, (255, 0, 0), 2)
         f.write('{},-1,{},{},{},{},{},-1,-1,-1\n'.format(count, x1*resize, y1*resize, (x2 - x1)*resize, (y2 - y1)*resize, best_score))
 
     f.close()
@@ -264,6 +264,7 @@ def video_segmentation(model, class_names, video_path, txt_path="det/det_maskrcn
     success = True
     total_det = 0
 
+    start = time.time()
     with tqdm(total=length_input, file=sys.stdout) as pbar:
         while success:
             # Read next image
@@ -276,7 +277,7 @@ def video_segmentation(model, class_names, video_path, txt_path="det/det_maskrcn
                 image = cv2.resize(image, (int(width/resize), int(height/resize)))
 
                 # Detect objects
-                r = model.detect([image], verbose=1)[0]
+                r = model.detect([image], verbose=0)[0]
 
                 frame, st = display_instances(count, image, r["rois"], r["masks"], r["class_ids"], class_names, r["scores"], resize)
 
@@ -294,6 +295,14 @@ def video_segmentation(model, class_names, video_path, txt_path="det/det_maskrcn
                 vwriter.write(frame)
                 count += 1
                 total_det += st
+
+                # FPS calculation
+                end = time.time()
+                frame_time = end - start
+
+                d_fps = round(count / frame_time, 2)
+
+                print("FPS: {}".format(d_fps))
                 
             #Fancy print
             pbar.update(1)
