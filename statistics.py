@@ -17,6 +17,8 @@ class Statistics:
         self.line_points = []
         self.resize = 1
 
+        self.possession = -1
+
         #variables for statistics 1:
         self.possesso_palla = np.array([0, 0, 0])
         self.ball_cumulative_position = np.array([0, 0])
@@ -33,6 +35,9 @@ class Statistics:
         self.ballDX = False
         self.ballSX = False
         self.history_distance_ball_center = []
+
+        self.past_centroid_t1 = []
+        self.past_centroid_t2 = []
         
         #per statistica 5:
         self.pressione = np.array([0, 0])
@@ -117,6 +122,7 @@ class Statistics:
                 player_index = np.argmin(ball_players_distance)
 
                 txt = "-"
+                self.possession = -1
 
                 if(ball_players_distance[player_index] < 150):
                     
@@ -126,6 +132,8 @@ class Statistics:
                     
                     #the current team number is defined as the most recurrent number in the last 5 frame
                     self.filtered_team_number = int(np.median(self.storia_possesso_palla[-10:]))
+
+                    self.possession = self.filtered_team_number
                     
                     self.possesso_palla[self.filtered_team_number] = self.possesso_palla[self.filtered_team_number] + 1
                     
@@ -180,8 +188,10 @@ class Statistics:
             # Return -1 left, 0 on line, +1 right
             ball_pos = ball_position(self.line_points[0], self.line_points[1], p1)
 
-            distance_ball_center = abs((np.cross(line_points_arr[0]-p1, p1-line_points_arr[1])) / np.linalg.norm(line_points_arr[0]-p1))
+            distance_ball_center = abs((np.cross(line_points_arr[1]-line_points_arr[0], p1-line_points_arr[0])) / np.linalg.norm(line_points_arr[1]-line_points_arr[0]))
             self.history_distance_ball_center.append(distance_ball_center * ball_pos)
+
+            print("Distance: {}".format(distance_ball_center))
 
             self.ballDX = (ball_pos == 1)
             self.ballSX = (ball_pos == -1)
@@ -289,13 +299,67 @@ class Statistics:
         
         return image
 
+    # Pressione v2
+    def stat_pressione(self,image,boxes_ball,boxes_team,team_numbers):           
+        image = cv2.putText(image, "Opponent pressure (%)", (100, 200 + (80 * 5)), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (200,200,200), 4)
+
+        means_p = 10
+        line_points_arr = np.asarray(self.line_points)
+
+        t1_boxes = []
+        t2_boxes = []
+
+        if self.possession > 0:
+            for i, box in enumerate(boxes_team):
+                if int(team_numbers[i]) == 1:
+                    t1_boxes.append(box)
+                elif int(team_numbers[i]) == 2:
+                    t2_boxes.append(box)
+
+            if len(t1_boxes) > 0:
+                centroid_t1 = bbox_centroid(t1_boxes)
+                self.past_centroid_t1.append(centroid_t1)
+
+            if len(t2_boxes) > 0:
+                centroid_t2 = bbox_centroid(t2_boxes)
+                self.past_centroid_t2.append(centroid_t2)
+
+            if self.frame > means_p: 
+                m_centroid_t1 = np.mean(self.past_centroid_t1[-means_p:], axis=0).astype(int)
+                m_centroid_t2 = np.mean(self.past_centroid_t2[-means_p:], axis=0).astype(int)
+
+                dist_t1_line = abs((np.cross(line_points_arr[0]-m_centroid_t1, m_centroid_t1-line_points_arr[1])) / np.linalg.norm(line_points_arr[0]-m_centroid_t1))
+                dist_t2_line = abs((np.cross(line_points_arr[0]-m_centroid_t2, m_centroid_t2-line_points_arr[1])) / np.linalg.norm(line_points_arr[0]-m_centroid_t2))
+
+                if np.linalg.norm(m_centroid_t1 - m_centroid_t2) < 300:
+                    if m_centroid_t1[0] > m_centroid_t2[0] and dist_t1_line > 550 and self.ballDX:
+                        self.pressione[1] += 1
+                    elif m_centroid_t1[0] < m_centroid_t2[0] and dist_t2_line > 550 and self.ballSX:
+                        self.pressione[0] += 1
+            
+                draw_poly(image, t1_boxes, (60,60,60))
+                draw_poly(image, t2_boxes, (200,200,200))
+
+                image = cv2.circle(image, (m_centroid_t1[0], m_centroid_t1[1]), 25, (60, 60, 60), -1)
+                image = cv2.circle(image, (m_centroid_t2[0], m_centroid_t2[1]), 25, (200, 200, 200), -1)
+
+        if np.sum(self.pressione) > 0:
+            image = cv2.putText(image, "   Team 1: {}%".format(str(int(self.pressione[0] / np.sum(self.pressione) * 100))), (100, 200 + (80 * 6)), cv2.FONT_HERSHEY_SIMPLEX, 1, (200,200,200), 2)
+            image = cv2.putText(image, "   Team 2: {}%".format(str(int(self.pressione[1] / np.sum(self.pressione) * 100))), (100, 200 + (80 * 7)), cv2.FONT_HERSHEY_SIMPLEX, 1, (200,200,200), 2)
+        
+
+        return image
+
     def run_stats(self,image,boxes_ball,boxes_team,team_numbers,fps,frame_id):
+        self.frame = frame_id
+
         #Draw stats windows
         image = cv2.rectangle(image, (50,50), (700, 100 + (80 * 9)), (0,0,0), -1)  
 
         #Draw pitch middle line
         image = cv2.line(image, self.line_points[0], self.line_points[1], (20,20,20), thickness=2)
 
+        ## Statistics call ##
         # Chiamata statistica 1            
         image = self.stat1(image, boxes_ball, boxes_team, team_numbers, fps, frame_id)
         
@@ -306,7 +370,10 @@ class Statistics:
         image = self.stat4(image, boxes_ball, boxes_team, team_numbers)   
         
         # Chiamata statistica 5
-        image = self.stat5(image)
+        #image = self.stat5(image)
+
+        # Calcolo pressione       
+        image = self.stat_pressione(image, boxes_ball, boxes_team, team_numbers)
 
         return image
         
@@ -321,7 +388,7 @@ def run_all(video_path, ball_tracking_path, team_detection_path, out_txt_file):
 
     # Output video
     fourcc = cv2.VideoWriter_fourcc('m','p','4','v') #definisco formato output video mp4
-    out = cv2.VideoWriter('output-finale.mp4',fourcc, 30.0, (int(video.get(3)), int(video.get(4))), True) #definisco proprietà output video
+    out = cv2.VideoWriter('output-finale.mp4',fourcc, 25.0, (int(video.get(3)), int(video.get(4))), True) #definisco proprietà output video
 
     if not video.isOpened():
         print ("Could not open video")
