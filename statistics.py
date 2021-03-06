@@ -301,7 +301,7 @@ class Statistics:
 
     # Pressione v2
     def stat_pressione(self,image,boxes_ball,boxes_team,team_numbers):           
-        image = cv2.putText(image, "Opponent pressure (%)", (100, 200 + (80 * 5)), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (200,200,200), 4)
+        image = cv2.putText(image, "Attacking pressure (%)", (100, 200 + (80 * 5)), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (200,200,200), 4)
 
         means_p = 10
         line_points_arr = np.asarray(self.line_points)
@@ -328,9 +328,12 @@ class Statistics:
                 m_centroid_t1 = np.mean(self.past_centroid_t1[-means_p:], axis=0).astype(int)
                 m_centroid_t2 = np.mean(self.past_centroid_t2[-means_p:], axis=0).astype(int)
 
-                dist_t1_line = abs((np.cross(line_points_arr[0]-m_centroid_t1, m_centroid_t1-line_points_arr[1])) / np.linalg.norm(line_points_arr[0]-m_centroid_t1))
-                dist_t2_line = abs((np.cross(line_points_arr[0]-m_centroid_t2, m_centroid_t2-line_points_arr[1])) / np.linalg.norm(line_points_arr[0]-m_centroid_t2))
+                dist_t1_line = abs((np.cross(line_points_arr[1]-line_points_arr[0], m_centroid_t1-line_points_arr[0])) / np.linalg.norm(line_points_arr[1]-line_points_arr[0]))
+                dist_t2_line = abs((np.cross(line_points_arr[1]-line_points_arr[0], m_centroid_t2-line_points_arr[0])) / np.linalg.norm(line_points_arr[1]-line_points_arr[0]))
 
+                print(dist_t1_line)
+
+                # Se la distanza tra le due squadre (centroidi) è minore di 300
                 if np.linalg.norm(m_centroid_t1 - m_centroid_t2) < 300:
                     if m_centroid_t1[0] > m_centroid_t2[0] and dist_t1_line > 550 and self.ballDX:
                         self.pressione[1] += 1
@@ -366,10 +369,10 @@ class Statistics:
         # Chiamata statistica 2        
         image = self.stat2(image, boxes_ball, self.line_points)
         
-        # Chiamata statistica 4
-        image = self.stat4(image, boxes_ball, boxes_team, team_numbers)   
+        # Chiamata statistica 4 (Attacco)
+        #image = self.stat4(image, boxes_ball, boxes_team, team_numbers)   
         
-        # Chiamata statistica 5
+        # Chiamata statistica 5 (Vecchia Pressione)
         #image = self.stat5(image)
 
         # Calcolo pressione       

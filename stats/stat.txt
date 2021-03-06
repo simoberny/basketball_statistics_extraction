@@ -347,3 +347,27 @@ Numero tatale frame con posizione individuata: 540
 ---- Statistiche Detection ---- 
 Numero tatale frame: 919
 Numero tatale frame con posizione individuata: 540
+
+---- Statistiche Detection ---- 
+Numero tatale frame: 919
+Numero tatale frame con posizione individuata: 540
+
+---- Tracking ----
+Numero tatale frame: 919
+Numero tatale frame con posizione individuata: 540
+Numero tatale frame tracked: 904
+
+---- Tracking ----
+Numero tatale frame: 919
+Numero tatale frame con posizione individuata: 540
+Numero tatale frame tracked: 849
+
+---- Tracking ----
+Numero tatale frame: 919
+Numero tatale frame con posizione individuata: 540
+Numero tatale frame tracked: 811
+
+---- Tracking ----
+Numero tatale frame: 919
+Numero tatale frame con posizione individuata: 540
+Numero tatale frame tracked: 690

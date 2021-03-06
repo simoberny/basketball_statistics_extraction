@@ -386,6 +386,8 @@ if __name__ == '__main__':
         GPU_COUNT = 1
         IMAGES_PER_GPU = 1
     class PlayerConfig(coco.CocoConfig):
+        BACKBONE = 'resnet101'
+        DETECTION_MIN_CONFIDENCE = 0.86
         GPU_COUNT = 1
         IMAGES_PER_GPU = 1
 

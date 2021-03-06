@@ -39,7 +39,7 @@ def opencv_tracking(video_path, detection_path, resize=1, txt_path="det/det_trac
     gt_dict = get_dict(detection_path)
 
     params = cv2.TrackerCSRT_Params()
-    params.psr_threshold = 0.04
+    params.psr_threshold = 0.08
 
     #Initialize tracker
     tracker = cv2.TrackerCSRT_create(params)

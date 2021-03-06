@@ -84,8 +84,8 @@ def display_instances(count, image, boxes, masks, ids, names, scores, resize):
             offset_h = int(height/3)
             offset_head = int(height/8)
 
-            file_name = "mask_{:%Y%m%dT%H%M%S}.png".format(datetime.datetime.now())
-            skimage.io.imsave(file_name, mat_mask)
+            #file_name = "mask_{:%Y%m%dT%H%M%S}.png".format(datetime.datetime.now())
+            #skimage.io.imsave(file_name, mat_mask)
 
             #Crop the image with some defined offset
             crop_img = mat_mask[y1+offset_head:y2-offset_h, x1+offset_w:x2-offset_w]

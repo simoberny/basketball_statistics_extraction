@@ -109,7 +109,7 @@ def bbox_centroid(boxes):
     y = [(p[1] + p[3]/2) for p in boxes]
     return (int(sum(x) / len(boxes)), int(sum(y) / len(boxes)))
 
-def draw_poly(image, boxes, t_col, alpha = 0.6):
+def draw_poly(image, boxes, t_col, alpha = 0.4):
     points = []
 
     if len(boxes) < 3:
