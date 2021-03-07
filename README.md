@@ -66,21 +66,21 @@ frame_id, bbox_id, x_pos, y_pos, width, height, score, x, y, z
 ```
 
 ## Files explanation
-#### Training
+##### Training
 Dataset folder should contain train and val folder. Follow MaskRCNN rules. 
 ```
 python train.py --weight=[coco|last|imagenet] --dataset=/path/to/dataset
 ```
 ___
 
-## Ball Analysis
-#### Detection
+### Ball Analysis
+##### Detection
 Return a txt with all the detection in mot format (det folder) and a video with the bboxes (output folder)
 ```
 python detection.py detect --weight=[coco or path to your new .h5 weights] --video=/path/to/video
 ```
 
-#### Tracking and Interpolation
+##### Tracking and Interpolation
 Given the previous detection output, it tries to track them using CSRT.
 ```
 python tracking.py --video=/path/to/video --det=/path/to/detections.txt
@@ -93,8 +93,8 @@ python interpolation.py --video=/path/to/video --det=/path/to/tracking.txt
 
 ___
 
-## Player Analysis
-#### Player Detection
+### Player Analysis
+##### Player Detection
 Extract dominant color from player bboxes masks to indentify the team
 ```
 python detection.py detect --weight=coco --video=/path/to/video
@@ -102,25 +102,25 @@ python detection.py detect --weight=coco --video=/path/to/video
 
 ___
 
-## Statistics Extraction
-#### Extract Statistics
+### Statistics Extraction
+##### Extract Statistics
 Extract some base statistic, ball possession and ball position in the two half of the pitch
 ```
 python stats.py --video=/path/to/video --det_ball=/path/to/ball_tracking.txt --det_player=/path/to/det.txt
 ```
 
-#### Online Computation (Ball + Player detection and stat extration)
+##### Online Computation (Ball + Player detection and stat extration)
 Chained and merged ball detection phase, player extraction and statistics
 ```
 python realtime.py -d --video=/path/to/video --weight=[path to your new .h5 weights]
 ```
 ___
 
-#### Network evaluation
+##### Network evaluation
 Calculate mAP and FPS 
 ```
 python evaluate.py --dataset=/path/to/dataset/ --weights=/path/to/new_weights
 ```
 
-#### Utility
+##### Utility
 Includes some useful functions, like a converter from mot to dict. 
