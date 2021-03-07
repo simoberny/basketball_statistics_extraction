@@ -26,46 +26,21 @@ YOLO Version of this project: [Matteo's Repository](https://github.com/MatteoDal
 
 ###### ** GPU = RTX 2070
 
-## Ball Network training fine-tunes
-- Data Agugmentation using imgaug ([Github repo](https://github.com/aleju/imgaug))
-- Reduced **RPN_ANCHOR_SCALES** for better recognition of small objects
-- Increased **WEIGHTS_DECAY**
-- Custom training steps: 
-
-```
-   # Training network Heads
-   model.train(dataset_train, dataset_val,
-               learning_rate=config.LEARNING_RATE,
-               epochs=int(epochs/2),
-               augmentation=augmentation,
-               layers='heads')
-
-   # Training network 4+ layers
-   model.train(dataset_train, dataset_val,
-               learning_rate=config.LEARNING_RATE,
-               epochs=epochs,
-               layers='4+')
-    
-   # Training all network layers
-   model.train(dataset_train, dataset_val,
-               learning_rate=config.LEARNING_RATE/10,
-               epochs=int(epochs*1.2),
-               layers='all')
-```
-
 ## Instructions
 1. This files need to be placed in a "project folder" inside samples folder of [MaskRCNN Matterport implementation](https://github.com/matterport/Mask_RCNN).
    -  Something like: *MASKRCNN FOLDER/samples/{project folter}/files*
 2. Follow instructions of original Maskrcnn repository to install dependencies and maskrcnn itself
 3. Run the script as indicated below!
 
-### Detection's save file format
+#### Detection's save file format
 All the script read and save in MOT challenge format
 ```
 frame_id, bbox_id, x_pos, y_pos, width, height, score, x, y, z
 ```
 
 ## Files explanation
+<img src="https://i.imgur.com/FuHGDAZ.png" width="550">
+
 ##### Training
 Dataset folder should contain train and val folder. Follow MaskRCNN rules. 
 ```
@@ -122,5 +97,30 @@ Calculate mAP and FPS
 python evaluate.py --dataset=/path/to/dataset/ --weights=/path/to/new_weights
 ```
 
-##### Utility
-Includes some useful functions, like a converter from mot to dict. 
+
+## Ball Network training fine-tunes
+- Data Agugmentation using imgaug ([Github repo](https://github.com/aleju/imgaug))
+- Reduced **RPN_ANCHOR_SCALES** for better recognition of small objects
+- Increased **WEIGHTS_DECAY**
+- Custom training steps: 
+
+```
+   # Training network Heads
+   model.train(dataset_train, dataset_val,
+               learning_rate=config.LEARNING_RATE,
+               epochs=int(epochs/2),
+               augmentation=augmentation,
+               layers='heads')
+
+   # Training network 4+ layers
+   model.train(dataset_train, dataset_val,
+               learning_rate=config.LEARNING_RATE,
+               epochs=epochs,
+               layers='4+')
+    
+   # Training all network layers
+   model.train(dataset_train, dataset_val,
+               learning_rate=config.LEARNING_RATE/10,
+               epochs=int(epochs*1.2),
+               layers='all')
+```
