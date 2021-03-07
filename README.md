@@ -8,7 +8,7 @@ YOLO Version of this project: [Matteo's Repository](https://github.com/MatteoDal
 
 [Check out full video!](https://youtu.be/R6vTXeZziyA)
 
-## Result
+## Results
 #### Ball Accuracy
 | Running | Accuracy | Precision  | Recall | mAP (%) |
 | ------------- |:-------------:| :--------: | :-----:| :-----:|
