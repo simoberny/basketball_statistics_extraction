@@ -188,9 +188,9 @@ def opencv_tracking(video_path, detection_path, resize=1, txt_path="det/det_trac
             sleep(0.1)
 
     stat.write("\n---- Tracking ----\n")   
-    stat.write("Numero tatale frame: {}\n".format(frame_id))
-    stat.write("Numero tatale frame con posizione individuata: {}\n".format(det_frame))
-    stat.write("Numero tatale frame tracked: {}\n".format(track_frame))
+    stat.write("Numero totale frame: {}\n".format(frame_id))
+    stat.write("Numero totale frame con posizione individuata: {}\n".format(det_frame))
+    stat.write("Numero totale frame tracked: {}\n".format(track_frame))
 
     f.close()
 

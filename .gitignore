@@ -3,6 +3,7 @@ output/
 dataset/train/
 dataset/val/
 det/
+videos/
 stats/stat.txt
 *.mp4
 

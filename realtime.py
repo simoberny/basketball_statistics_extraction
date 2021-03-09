@@ -233,7 +233,10 @@ def video_detection(stat, ball_model, player_model, video_path, txt_path="det/de
     success = True
     total_det = 0
 
-    tracker = cv2.TrackerCSRT_create()
+    params = cv2.TrackerCSRT_Params()
+    params.psr_threshold = 0.08
+
+    tracker = cv2.TrackerCSRT_create(params)
 
     initBB = None
     bbox_offset = 10
@@ -286,7 +289,7 @@ def video_detection(stat, ball_model, player_model, video_path, txt_path="det/de
                     coor = np.array(detection[:4], dtype=np.int32)
                     if initBB is None or (prev_box[0] == 0 and prev_box[1] == 0):
                         initBB = (coor[0] - bbox_offset, coor[1] - bbox_offset, coor[2] + 2*bbox_offset, coor[3] + 2*bbox_offset)
-                        tracker = cv2.TrackerCSRT_create()
+                        tracker = cv2.TrackerCSRT_create(params)
                         tracker.init(track_image, initBB)
                     else:
                         min_distance = 99999
@@ -294,7 +297,7 @@ def video_detection(stat, ball_model, player_model, video_path, txt_path="det/de
                         eucl = math.sqrt((coor[0] - prev_box[0]) ** 2 + (coor[1] - prev_box[1]) ** 2)  
                     
                         if frame_diff > 8 or eucl < 200: 
-                            tracker = cv2.TrackerCSRT_create()
+                            tracker = cv2.TrackerCSRT_create(params)
                             tracker.init(track_image, initBB)
 
                             frame_diff = 0        
@@ -303,9 +306,9 @@ def video_detection(stat, ball_model, player_model, video_path, txt_path="det/de
                             
                 # If there is a new bbox, update the tracker
                 if initBB is not None: 
-                    (success, tracked_box) = tracker.update(track_image)
+                    (track_success, tracked_box) = tracker.update(track_image)
 
-                    if success:
+                    if track_success:
                         #Save tracking boxes (include also det)
                         f.write('{},-1,{},{},{},{},{},-1,-1,-1\n'.format(count, tracked_box[0], tracked_box[1], tracked_box[2], tracked_box[3], 1))
                         prev_box = [tracked_box[0], tracked_box[1]]
@@ -321,7 +324,7 @@ def video_detection(stat, ball_model, player_model, video_path, txt_path="det/de
 
                 d_fps = round(count / frame_time, 2)
 
-                print("FPS: {}".format(d_fps))
+                #print("FPS: {}".format(d_fps))
 
                 frame = cv2.rectangle(frame, (width - 200, 50), (width - 50, 150), (0,0,0), -1)
                 frame = cv2.putText(frame, "{}".format(d_fps), (width - 170, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.3, (230,230,230), 2)
@@ -357,7 +360,7 @@ def video_detection(stat, ball_model, player_model, video_path, txt_path="det/de
 
     # Saving complete stats on file
     stat_file = open("stats/full_stat.txt", "w")
-    stat.generate_file(stat_file, count)
+    #stat.generate_file(stat_file, count)
     stat_file.close()
 
     # Close tracking bounding save file
