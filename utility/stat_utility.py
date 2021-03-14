@@ -120,8 +120,8 @@ def draw_poly(image, boxes, t_col, alpha = 0.4):
         y = int(box[1] + box[3]/2)
 
         points.append((x, y))
-        cv2.circle(image, (x, y), 23, (0, 0, 200), 2)
-        cv2.circle(image, (x, y), 20, t_col, -1)
+        cv2.circle(image, (x, y), 19, (0, 0, 200), 2)
+        cv2.circle(image, (x, y), 15, t_col, -1)
 
     m = MultiPoint(points)
     hull = m.convex_hull
@@ -137,7 +137,7 @@ def draw_poly(image, boxes, t_col, alpha = 0.4):
         p1 = exterior[0][i]
         p2 = exterior[0][i+1]
 
-        cv2.line(image ,(p1[0], p1[1]),(p2[0], p2[1]),t_col,4)
+        #cv2.line(image ,(p1[0], p1[1]),(p2[0], p2[1]),t_col,4)
 
 
     return image

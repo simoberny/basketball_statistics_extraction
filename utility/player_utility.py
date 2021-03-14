@@ -23,7 +23,7 @@ def get_mask(filename):
 	return mask
  
 # Apply mask to image
-def apply_mask(image, mask, color, alpha=0.4):
+def apply_mask(image, mask, color, alpha=0.3):
     for n, c in enumerate(color):
         image[:, :, n] = np.where(mask == 1, image[:, :, n] * (1-alpha) + alpha * c, image[:, :, n])
     

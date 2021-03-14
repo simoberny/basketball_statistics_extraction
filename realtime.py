@@ -125,22 +125,31 @@ def player_instances(count, image, boxes, masks, ids, names, scores, resize):
 
             caption = '{} {:.2f}'.format(label, score) if score else label
         
-            image = apply_mask(image, mask, rgb_tuple)
-            image = cv2.rectangle(image, (x1, y1), (x2, y2), rgb_tuple, 3)
-            image = cv2.putText(image, caption, (x1, y1 - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.8, rgb_tuple, 2)
-
             team = getTeam(image, rgb_color)
+
+            if team == 1: 
+                box_color = (60,60,60)
+            elif team == 2:
+                box_color = (200, 200, 200) 
+            else: 
+                box_color = [0, 102, 204, 0]
+
+            image = apply_mask(image, mask, rgb_tuple)
+            image = cv2.rectangle(image, (x1, y1), (x2, y2), box_color, 3)
+            image = cv2.putText(image, caption, (x1, y1 - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.8, box_color, 2)
 
             players_boxes.append([x1, y1, (x2 - x1), (y2 - y1)])
             players_id.append(team)
 
             f.write('{},-1,{},{},{},{},{},-1,-1,-1,{} \n'.format(count, x1, y1, (x2 - x1), (y2 - y1), score, team))
 
-    #Group to 3 cluster all the color found in the frame's bboxes
-    clusters, counts = parse_colors(color_list, 3)
+    if len(color_list) > 3:
+        #Group to 3 cluster all the color found in the frame's bboxes
+        clusters, counts = parse_colors(color_list, 3)
 
-    #Update team's stats
-    image = draw_team(image, clusters, counts)
+        #Update team's stats
+        image = draw_team(image, clusters, counts)
+
     f.close()
 
     return image, players_boxes, players_id
@@ -211,6 +220,7 @@ def ball_instances(count, image, boxes, masks, ids, names, scores, resize):
     return image, dict_result
 
 def video_detection(stat, ball_model, player_model, video_path, txt_path="det/det_track_maskrcnn.txt", resize=1, display=False):
+    f = open("det/det_player_maskrcnn.txt", "w").close()
     f = open("det/det_maskrcnn.txt", "w").close()
     f = open(txt_path, "w")
 
@@ -261,7 +271,7 @@ def video_detection(stat, ball_model, player_model, video_path, txt_path="det/de
                 track_image = image.copy()
 
                 #Mask for LATERAL VIEW GAME ONLY!
-                mask = get_mask('roi_mask.jpg')
+                mask = get_mask('roi_mask_undistorted.jpg')
                 mask = np.expand_dims(mask,2)
                 mask = np.repeat(mask,3,2)
 
@@ -296,7 +306,7 @@ def video_detection(stat, ball_model, player_model, video_path, txt_path="det/de
                         initBB = (coor[0] - bbox_offset, coor[1] - bbox_offset, coor[2] + 2*bbox_offset, coor[3] + 2*bbox_offset)
                         eucl = math.sqrt((coor[0] - prev_box[0]) ** 2 + (coor[1] - prev_box[1]) ** 2)  
                     
-                        if frame_diff > 8 or eucl < 200: 
+                        if frame_diff > 6 or eucl < 200: 
                             tracker = cv2.TrackerCSRT_create(params)
                             tracker.init(track_image, initBB)
 
@@ -345,7 +355,7 @@ def video_detection(stat, ball_model, player_model, video_path, txt_path="det/de
 
                 if display:
                     to_show = cv2.resize(stat_image, (int(width/2), int(height/2)))
-                    cv2.imshow('YOLO Object Detection', to_show)
+                    cv2.imshow('Real time processing', to_show)
                     if cv2.waitKey(1) & 0xFF == ord('q'):
                         break
     
@@ -390,7 +400,7 @@ if __name__ == '__main__':
         IMAGES_PER_GPU = 1
     class PlayerConfig(coco.CocoConfig):
         BACKBONE = 'resnet101'
-        DETECTION_MIN_CONFIDENCE = 0.86
+        DETECTION_MIN_CONFIDENCE = 0.82
         GPU_COUNT = 1
         IMAGES_PER_GPU = 1
 

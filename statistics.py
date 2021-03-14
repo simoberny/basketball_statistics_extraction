@@ -309,49 +309,50 @@ class Statistics:
         t1_boxes = []
         t2_boxes = []
 
-        if(len(boxes_ball) > 0):
-            if self.possession > 0:
-                for i, box in enumerate(boxes_team):
-                    if int(team_numbers[i]) == 1:
-                        t1_boxes.append(box)
-                    elif int(team_numbers[i]) == 2:
-                        t2_boxes.append(box)
+        # Possesso alle squadre
+        if self.possession > 0:
+            for i, box in enumerate(boxes_team):
+                if int(team_numbers[i]) == 1:
+                    t1_boxes.append(box)
+                elif int(team_numbers[i]) == 2:
+                    t2_boxes.append(box)
 
-                if len(t1_boxes) > 0:
-                    centroid_t1 = bbox_centroid(t1_boxes)
-                    self.past_centroid_t1.append(centroid_t1)
+            # Calcolo baricentro (centroidi) squadre
+            if len(t1_boxes) > 0 and len(t2_boxes) > 0:
+                centroid_t1 = bbox_centroid(t1_boxes)
+                self.past_centroid_t1.append(centroid_t1)
 
-                if len(t2_boxes) > 0:
-                    centroid_t2 = bbox_centroid(t2_boxes)
-                    self.past_centroid_t2.append(centroid_t2)
+                centroid_t2 = bbox_centroid(t2_boxes)
+                self.past_centroid_t2.append(centroid_t2)
 
-                if self.frame > means_p: 
-                    m_centroid_t1 = np.mean(self.past_centroid_t1[-means_p:], axis=0).astype(int)
-                    m_centroid_t2 = np.mean(self.past_centroid_t2[-means_p:], axis=0).astype(int)
+            if self.frame > means_p and len(self.past_centroid_t1) > 0: 
+                # Media sugli ultimi 10 centroidi
+                m_centroid_t1 = np.mean(self.past_centroid_t1[-means_p:], axis=0).astype(int)
+                m_centroid_t2 = np.mean(self.past_centroid_t2[-means_p:], axis=0).astype(int)
 
-                    dist_t1_line = abs((np.cross(line_points_arr[1]-line_points_arr[0], m_centroid_t1-line_points_arr[0])) / np.linalg.norm(line_points_arr[1]-line_points_arr[0]))
-                    dist_t2_line = abs((np.cross(line_points_arr[1]-line_points_arr[0], m_centroid_t2-line_points_arr[0])) / np.linalg.norm(line_points_arr[1]-line_points_arr[0]))
+                # Distanza line di metà campo e centroidi
+                dist_t1_line = abs((np.cross(line_points_arr[1]-line_points_arr[0], m_centroid_t1-line_points_arr[0])) / np.linalg.norm(line_points_arr[1]-line_points_arr[0]))
+                dist_t2_line = abs((np.cross(line_points_arr[1]-line_points_arr[0], m_centroid_t2-line_points_arr[0])) / np.linalg.norm(line_points_arr[1]-line_points_arr[0]))
 
-                    #print(dist_t1_line)
+                #print(dist_t1_line)
 
-                    # Se la distanza tra le due squadre (centroidi) è minore di 300
-                    if np.linalg.norm(m_centroid_t1 - m_centroid_t2) < 300:
-                        if m_centroid_t1[0] > m_centroid_t2[0] and dist_t1_line > 550 and self.ballDX:
-                            self.pressione[1] += 1
-                        elif m_centroid_t1[0] < m_centroid_t2[0] and dist_t2_line > 550 and self.ballSX:
-                            self.pressione[0] += 1
-                
-                    draw_poly(image, t1_boxes, (60,60,60))
-                    draw_poly(image, t2_boxes, (200,200,200))
-
-                    image = cv2.circle(image, (m_centroid_t1[0], m_centroid_t1[1]), 25, (60, 60, 60), -1)
-                    image = cv2.circle(image, (m_centroid_t2[0], m_centroid_t2[1]), 25, (200, 200, 200), -1)
-
-            if np.sum(self.pressione) > 0:
-                image = cv2.putText(image, "   Team 1: {}%".format(str(int(self.pressione[0] / np.sum(self.pressione) * 100))), (100, 200 + (80 * 6)), cv2.FONT_HERSHEY_SIMPLEX, 1, (200,200,200), 2)
-                image = cv2.putText(image, "   Team 2: {}%".format(str(int(self.pressione[1] / np.sum(self.pressione) * 100))), (100, 200 + (80 * 7)), cv2.FONT_HERSHEY_SIMPLEX, 1, (200,200,200), 2)
+                # Se la distanza tra le due squadre (centroidi) è minore di 300
+                if np.linalg.norm(m_centroid_t1 - m_centroid_t2) < 300:
+                    if m_centroid_t1[0] > m_centroid_t2[0] and dist_t1_line > 550 and self.ballDX:
+                        self.pressione[1] += 1
+                    elif m_centroid_t1[0] < m_centroid_t2[0] and dist_t2_line > 550 and self.ballSX:
+                        self.pressione[0] += 1
             
+                draw_poly(image, t1_boxes, (60,60,60))
+                draw_poly(image, t2_boxes, (200,200,200))
 
+                image = cv2.circle(image, (m_centroid_t1[0], m_centroid_t1[1]), 25, (60, 60, 60), -1)
+                image = cv2.circle(image, (m_centroid_t2[0], m_centroid_t2[1]), 25, (200, 200, 200), -1)
+
+        if np.sum(self.pressione) > 0:
+            image = cv2.putText(image, "   Team 1: {}%".format(str(int(self.pressione[0] / np.sum(self.pressione) * 100))), (100, 200 + (80 * 6)), cv2.FONT_HERSHEY_SIMPLEX, 1, (200,200,200), 2)
+            image = cv2.putText(image, "   Team 2: {}%".format(str(int(self.pressione[1] / np.sum(self.pressione) * 100))), (100, 200 + (80 * 7)), cv2.FONT_HERSHEY_SIMPLEX, 1, (200,200,200), 2)
+        
         return image
 
     def run_stats(self,image,boxes_ball,boxes_team,team_numbers,fps,frame_id):
@@ -422,6 +423,7 @@ def run_all(video_path, ball_tracking_path, team_detection_path, out_txt_file):
         boxes_ball,scores_ball,names_ball, complete_ball, not_used = get_gt(frame,frame_id,ball_dict)
         
         image = draw_players(image,boxes_team,team_numbers)
+        
         if len(boxes_ball) > 0:
             coor = boxes_ball[0] #nel caso della palla il detector ritorna solo 1 detection ogni volta
             draw_rect(image, coor, (10,255,255))
