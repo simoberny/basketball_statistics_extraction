@@ -1,4 +1,4 @@
-# Basketball game tracking
+# Basketball game statistics extraction
 Extraction of high level statistics by tracking Basketball game using MaskRCNN, CSRT and interpolation.
 
 YOLO Version of this project: [Matteo's Repository](https://github.com/MatteoDalponte/Basketball_statistics)
